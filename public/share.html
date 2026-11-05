@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Resonate | 共有された好き</title>
+<meta property="og:title" content="Resonateで好きなものが届いたよ" />
+<meta property="og:description" content="開いて確認してみよう" />
+<meta property="og:type" content="website" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="app">
+  <header class="app-header">
+    <span class="logo">Resonate</span>
+  </header>
+
+  <div id="loading-card" class="card">
+    <p class="loading">読み込み中...</p>
+  </div>
+
+  <div id="content-card" class="card hidden">
+    <p class="sub" id="from-label"></p>
+    <h1 id="content-title"></h1>
+    <p id="content-type-label" class="sub"></p>
+    <p id="message-inner"></p>
+  </div>
+
+  <div id="reaction-card" class="card hidden">
+    <h2>どう思った？</h2>
+    <div class="reaction-grid" id="reaction-grid"></div>
+    <div style="margin-top:14px;">
+      <textarea id="comment-input" placeholder="ひとこと（任意）"></textarea>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn btn-primary" id="submit-reaction-btn" disabled>送る</button>
+    </div>
+  </div>
+
+  <div id="thanks-card" class="card hidden">
+    <h1>ありがとう！</h1>
+    <p class="sub">気持ちが伝わったよ。ゆっくり楽しんでね。</p>
+  </div>
+
+  <div id="not-found-card" class="card hidden">
+    <h1>見つかりませんでした</h1>
+    <p class="sub">リンクが正しいか確認してね</p>
+  </div>
+</div>
+
+<script type="module" src="js/share.js"></script>
+</body>
+</html>

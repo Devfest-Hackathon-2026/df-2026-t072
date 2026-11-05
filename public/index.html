@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Resonate | 好きを共有する</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="app">
+  <header class="app-header">
+    <span class="logo">Resonate</span>
+  </header>
+
+  <!-- Step 1: コンテンツ選択 -->
+  <section class="step active" data-step="1">
+    <div class="card">
+      <h1>何を共有する？</h1>
+      <p class="sub">映画・音楽・その他エンタメから選んでね</p>
+      <div class="chip-group" id="content-type-group"></div>
+    </div>
+    <div class="card">
+      <h2>タイトル</h2>
+      <input type="text" id="content-title" placeholder="例：君の名は。" />
+    </div>
+    <div class="card">
+      <h2>あなたの名前</h2>
+      <p class="sub">受け取った相手の画面に表示されます</p>
+      <input type="text" id="sender-name" placeholder="例：たろう" />
+    </div>
+    <div class="nav-buttons">
+      <button class="btn btn-primary" id="step1-next">次へ</button>
+    </div>
+  </section>
+
+  <!-- Step 2: ここが好きタグ選択 -->
+  <section class="step" data-step="2">
+    <div class="card">
+      <h1>ここが好き</h1>
+      <p class="sub">当てはまるものを選んでね（複数選択OK）</p>
+      <div class="chip-group" id="tag-group"></div>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" data-back>戻る</button>
+      <button class="btn btn-primary" id="step2-next">次へ</button>
+    </div>
+  </section>
+
+  <!-- Step 3: 送る温度感選択 -->
+  <section class="step" data-step="3">
+    <div class="card">
+      <h1>どのくらい伝える？</h1>
+      <p class="sub">温度感を選んでね</p>
+      <div class="chip-group" id="disclosure-group"></div>
+    </div>
+    <div class="card">
+      <h2>LINEのやり取りスクショ（任意）</h2>
+      <p class="sub">相手とのいつものトーンに合わせたメッセージを作るよ</p>
+      <input type="file" id="screenshot-input" accept="image/*" />
+    </div>
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" data-back>戻る</button>
+      <button class="btn btn-primary" id="step3-next">メッセージを作る</button>
+    </div>
+  </section>
+
+  <!-- Step 4: メッセージプレビュー -->
+  <section class="step" data-step="4">
+    <div class="card" id="generating-card">
+      <p class="loading">メッセージを生成中...</p>
+    </div>
+    <div class="card hidden" id="preview-card">
+      <h2>LINEで送るメッセージ</h2>
+      <textarea id="message-outer"></textarea>
+    </div>
+    <div class="card hidden" id="preview-inner-card">
+      <h2>リンクを開くと見える内容</h2>
+      <textarea id="message-inner"></textarea>
+    </div>
+    <div class="nav-buttons hidden" id="step4-nav">
+      <button class="btn btn-secondary" data-back>戻る</button>
+      <button class="btn btn-line" id="send-line-btn">LINEで送る</button>
+    </div>
+  </section>
+
+  <!-- Step 5: 送信完了 -->
+  <section class="step" data-step="5">
+    <div class="card">
+      <h1>送信リンクができたよ</h1>
+      <p class="sub">LINEアプリが開かなかった場合はこちらのリンクをコピーして送ってね</p>
+      <input type="text" id="share-url" readonly />
+    </div>
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" id="copy-link-btn">リンクをコピー</button>
+    </div>
+    <div class="nav-buttons">
+      <a class="btn btn-primary" href="mypage.html" style="text-decoration:none;">マイページで反応を見る</a>
+    </div>
+  </section>
+</div>
+
+<script type="module" src="js/send.js"></script>
+</body>
+</html>

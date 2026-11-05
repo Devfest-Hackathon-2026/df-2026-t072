@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Resonate | 反応を見る</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="app">
+  <header class="app-header">
+    <span class="logo">Resonate</span>
+  </header>
+
+  <div class="card">
+    <h1 id="content-title"></h1>
+    <p class="sub" id="content-type-label"></p>
+  </div>
+
+  <div class="card">
+    <h2>盛り上がり度</h2>
+    <div class="flame-display" id="flame-display">
+      <p class="loading">集計中...</p>
+    </div>
+  </div>
+
+  <div class="card hidden" id="cover-card">
+    <p id="cover-message"></p>
+  </div>
+
+  <div class="card hidden" id="next-action-card">
+    <h2>一緒に楽しむきっかけを作る？</h2>
+    <div id="next-action-list"></div>
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" id="suggest-btn">提案してもらう</button>
+    </div>
+  </div>
+
+  <div class="nav-buttons">
+    <a class="btn btn-secondary" href="mypage.html" style="text-decoration:none;">マイページへ戻る</a>
+  </div>
+</div>
+
+<script type="module" src="js/status.js"></script>
+</body>
+</html>
