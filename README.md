@@ -7,7 +7,7 @@
 ## 技術スタック
 
 - フロントエンド: HTML / CSS / Vanilla JavaScript（Firebase JS SDK v10, ESM / CDN読み込み）
-- バックエンド: Firebase Hosting + Cloud Functions for Firebase (Node.js 20)
+- バックエンド: Firebase Hosting + Cloud Functions for Firebase (Node.js 22)
 - DB・認証: Firestore / Firebase Authentication（匿名認証）
 - AI生成: Vertex AI Gemini API（`@google-cloud/vertexai`、マルチモーダル対応）
 
