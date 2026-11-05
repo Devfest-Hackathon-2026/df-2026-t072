@@ -138,6 +138,79 @@ function renderTagGroup(genre) {
   );
 }
 
+function selectGenreAndTitle(contentType, title) {
+  const chip = document.querySelector(`#content-type-group .chip[data-key="${contentType}"]`);
+  if (chip) chip.click();
+  document.getElementById("content-title").value = title;
+}
+
+function renderPersonaCandidates(candidates) {
+  const container = document.getElementById("persona-suggest-results");
+  container.innerHTML = "";
+
+  if (candidates.length === 0) {
+    container.classList.add("hidden");
+    alert("提案を作れなかったみたい。もう一度試してね");
+    return;
+  }
+
+  candidates.forEach((c) => {
+    const genreLabel = (CONTENT_TYPES.find((g) => g.value === c.contentType) || {}).label || c.contentType;
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "persona-candidate";
+
+    const genreEl = document.createElement("span");
+    genreEl.className = "candidate-genre";
+    genreEl.textContent = genreLabel;
+
+    const titleEl = document.createElement("div");
+    titleEl.className = "candidate-title";
+    titleEl.textContent = c.contentTitle;
+
+    const reasonEl = document.createElement("div");
+    reasonEl.className = "candidate-reason";
+    reasonEl.textContent = c.reason || "";
+
+    btn.append(genreEl, titleEl, reasonEl);
+    btn.addEventListener("click", () => {
+      selectGenreAndTitle(c.contentType, c.contentTitle);
+      container.classList.add("hidden");
+    });
+    container.appendChild(btn);
+  });
+
+  container.classList.remove("hidden");
+}
+
+function setupPersonaSuggest() {
+  document.getElementById("persona-suggest-btn").addEventListener("click", async () => {
+    const personName = document.getElementById("persona-name").value.trim();
+    const personDescription = document.getElementById("persona-description").value.trim();
+    if (!personName || !personDescription) {
+      alert("相手の名前と人物像を入力してね");
+      return;
+    }
+
+    const loading = document.getElementById("persona-suggest-loading");
+    const results = document.getElementById("persona-suggest-results");
+    results.classList.add("hidden");
+    loading.classList.remove("hidden");
+
+    try {
+      const suggestContentForPerson = httpsCallable(functions, "suggestContentForPerson");
+      const result = await suggestContentForPerson({ personName, personDescription });
+      renderPersonaCandidates(result.data.candidates || []);
+    } catch (err) {
+      console.error("suggestContentForPerson failed", err);
+      alert("提案の生成に失敗しました。もう一度試してね");
+    } finally {
+      loading.classList.add("hidden");
+    }
+  });
+}
+
 function init() {
   renderChipGroup(
     document.getElementById("content-type-group"),
@@ -161,6 +234,7 @@ function init() {
   );
 
   setupNav();
+  setupPersonaSuggest();
 
   document.getElementById("step1-next").addEventListener("click", () => {
     state.contentTitle = document.getElementById("content-title").value.trim();

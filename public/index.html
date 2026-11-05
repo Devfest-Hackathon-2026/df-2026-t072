@@ -24,6 +24,19 @@
       <input type="text" id="content-title" placeholder="例：君の名は。" />
     </div>
     <div class="card">
+      <h2>相手に合わせてAIに提案してもらう</h2>
+      <p class="sub">任意：相手の名前と人物像を入れると、AIが候補を出すよ</p>
+      <input type="text" id="persona-name" placeholder="相手の名前（例：さくらちゃん）" />
+      <textarea id="persona-description" placeholder="どんな人か（例：K-POP好き、泣けるアニメにハマってる）" rows="2" style="margin-top:8px;"></textarea>
+      <button class="btn btn-secondary" id="persona-suggest-btn" type="button" style="margin-top:10px;">AIに提案してもらう</button>
+      <p class="loading hidden" id="persona-suggest-loading">考え中...</p>
+      <div class="persona-results hidden" id="persona-suggest-results"></div>
+    </div>
+    <div class="card">
+      <h2>YouTube視聴履歴からパーソナライズ提案 <span class="badge-soon">近日公開</span></h2>
+      <p class="sub">YouTubeの視聴履歴から、あなたの好みに合う候補をAIが提案する機能を準備中だよ</p>
+    </div>
+    <div class="card">
       <h2>あなたの名前</h2>
       <p class="sub">受け取った相手の画面に表示されます</p>
       <input type="text" id="sender-name" placeholder="例：たろう" />
