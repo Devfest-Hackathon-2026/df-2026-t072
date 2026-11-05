@@ -1,34 +1,25 @@
-const { VertexAI } = require("@google-cloud/vertexai");
+const { GoogleGenAI } = require("@google/genai");
 
 const PROJECT_ID = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT;
 const LOCATION = "asia-northeast1";
-const MODEL_NAME = "gemini-1.5-flash";
+const MODEL_NAME = "gemini-2.5-flash";
 
-const vertexAi = new VertexAI({ project: PROJECT_ID, location: LOCATION });
-
-function getModel() {
-  return vertexAi.getGenerativeModel({ model: MODEL_NAME });
-}
+const ai = new GoogleGenAI({ vertexai: true, project: PROJECT_ID, location: LOCATION });
 
 async function generateText(prompt) {
-  const model = getModel();
-  const result = await model.generateContent({
-    contents: [{ role: "user", parts: [{ text: prompt }] }]
+  const response = await ai.models.generateContent({
+    model: MODEL_NAME,
+    contents: prompt
   });
-  return result.response.candidates[0].content.parts[0].text.trim();
+  return response.text.trim();
 }
 
 async function generateTextWithImage(prompt, imageBase64, mimeType = "image/jpeg") {
-  const model = getModel();
-  const result = await model.generateContent({
-    contents: [
-      {
-        role: "user",
-        parts: [{ text: prompt }, { inlineData: { data: imageBase64, mimeType } }]
-      }
-    ]
+  const response = await ai.models.generateContent({
+    model: MODEL_NAME,
+    contents: [{ text: prompt }, { inlineData: { data: imageBase64, mimeType } }]
   });
-  return result.response.candidates[0].content.parts[0].text.trim();
+  return response.text.trim();
 }
 
 async function generateJson(prompt) {
