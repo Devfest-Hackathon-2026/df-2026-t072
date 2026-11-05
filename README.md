@@ -89,10 +89,21 @@ firebase deploy
 6. LINEスクショ解析によるトーンチューニング — `generateMessage.js` 内 `extractToneHint`
 7. AIカバーメッセージ — `generateAiCover`
 8. ネクストアクション提案 — `suggestNextAction`
+9. Google検索連携の画像付き共有カード — `imageSearch.js`（コードのみ、Secret未設定のためデプロイ保留）
+10. YouTubeの視聴傾向からのAI提案 — `youtubeSuggest.js` / `send.js` の `setupYoutubeSuggest`（コードのみ、OAuthクライアントID未設定）
 
 **未実装（ピッチで語る未来機能）**
-- YouTube API連携でのパーソナライズ（ディープモードの `scoreTriggerType: cumulative` は項目だけ用意）
 - 累積型スコア判定の精度向上
+
+## YouTube連携のセットアップ（`suggestFromYoutube`）
+
+いいねした動画（取得できない場合はチャンネル登録チャンネル）の傾向から、Geminiが共有コンテンツの候補を提案する。実装はOAuth2のImplicit Flow（Google Identity Services）で、サーバー側にAPIキーやSecretは不要。
+
+1. GCPコンソールで対象プロジェクトの YouTube Data API v3 を有効化
+2. APIs と サービス → 認証情報 で OAuth クライアント ID（ウェブ アプリケーション）を作成
+   - 承認済みの JavaScript 生成元に Firebase Hosting の URL を追加（例: `https://resonate-app-35.web.app`）
+3. 発行されたクライアントIDを `public/js/youtube-config.js` の `YOUTUBE_CLIENT_ID` に反映（公開情報なのでそのままコミットしてよい）
+4. `index.html` の「YouTubeと連携する」ボタンから動作確認
 
 ## 既知の制約・今後の拡張ポイント
 

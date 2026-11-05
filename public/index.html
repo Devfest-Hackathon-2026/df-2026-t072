@@ -33,8 +33,11 @@
       <div class="persona-results hidden" id="persona-suggest-results"></div>
     </div>
     <div class="card">
-      <h2>YouTube視聴履歴からパーソナライズ提案 <span class="badge-soon">近日公開</span></h2>
-      <p class="sub">YouTubeの視聴履歴から、あなたの好みに合う候補をAIが提案する機能を準備中だよ</p>
+      <h2>YouTubeの視聴傾向からAIに提案してもらう</h2>
+      <p class="sub">任意：YouTubeと連携すると、いいねした動画の傾向からAIが候補を出すよ</p>
+      <button class="btn btn-secondary" id="youtube-suggest-btn" type="button">YouTubeと連携する</button>
+      <p class="loading hidden" id="youtube-suggest-loading">YouTubeを確認中...</p>
+      <div class="persona-results hidden" id="youtube-suggest-results"></div>
     </div>
     <div class="card">
       <h2>あなたの名前</h2>
@@ -112,6 +115,7 @@
   </section>
 </div>
 
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script type="module" src="js/send.js"></script>
 </body>
 </html>

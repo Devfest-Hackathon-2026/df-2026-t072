@@ -7,6 +7,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { db, functions, waitForUser } from "./auth.js";
 import { CONTENT_TYPES, LIKE_TAGS_BY_GENRE, DISCLOSURE_LEVELS } from "./constants.js";
+import { YOUTUBE_CLIENT_ID } from "./youtube-config.js";
 
 const state = {
   contentType: null,
@@ -147,8 +148,8 @@ function selectGenreAndTitle(contentType, title) {
   document.getElementById("content-title").value = title;
 }
 
-function renderPersonaCandidates(candidates) {
-  const container = document.getElementById("persona-suggest-results");
+function renderCandidates(candidates, containerId) {
+  const container = document.getElementById(containerId);
   container.innerHTML = "";
 
   if (candidates.length === 0) {
@@ -204,13 +205,53 @@ function setupPersonaSuggest() {
     try {
       const suggestContentForPerson = httpsCallable(functions, "suggestContentForPerson");
       const result = await suggestContentForPerson({ personName, personDescription });
-      renderPersonaCandidates(result.data.candidates || []);
+      renderCandidates(result.data.candidates || [], "persona-suggest-results");
     } catch (err) {
       console.error("suggestContentForPerson failed", err);
       alert("提案の生成に失敗しました。もう一度試してね");
     } finally {
       loading.classList.add("hidden");
     }
+  });
+}
+
+function setupYoutubeSuggest() {
+  document.getElementById("youtube-suggest-btn").addEventListener("click", () => {
+    if (!window.google?.accounts?.oauth2) {
+      alert("Googleログインの読み込みに失敗しました。ページを再読み込みしてね");
+      return;
+    }
+
+    const loading = document.getElementById("youtube-suggest-loading");
+    const results = document.getElementById("youtube-suggest-results");
+
+    const tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: YOUTUBE_CLIENT_ID,
+      scope: "https://www.googleapis.com/auth/youtube.readonly",
+      callback: async (response) => {
+        if (response.error) {
+          console.error("youtube oauth failed", response);
+          alert("YouTubeとの連携に失敗しました");
+          return;
+        }
+
+        results.classList.add("hidden");
+        loading.classList.remove("hidden");
+
+        try {
+          const suggestFromYoutube = httpsCallable(functions, "suggestFromYoutube");
+          const result = await suggestFromYoutube({ accessToken: response.access_token });
+          renderCandidates(result.data.candidates || [], "youtube-suggest-results");
+        } catch (err) {
+          console.error("suggestFromYoutube failed", err);
+          alert("提案の生成に失敗しました。もう一度試してね");
+        } finally {
+          loading.classList.add("hidden");
+        }
+      }
+    });
+
+    tokenClient.requestAccessToken();
   });
 }
 
@@ -238,6 +279,7 @@ function init() {
 
   setupNav();
   setupPersonaSuggest();
+  setupYoutubeSuggest();
 
   document.getElementById("step1-next").addEventListener("click", () => {
     state.contentTitle = document.getElementById("content-title").value.trim();
