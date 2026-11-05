@@ -6,7 +6,7 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { db, functions, waitForUser } from "./auth.js";
-import { CONTENT_TYPES, LIKE_TAGS, DISCLOSURE_LEVELS } from "./constants.js";
+import { CONTENT_TYPES, LIKE_TAGS_BY_GENRE, DISCLOSURE_LEVELS } from "./constants.js";
 
 const state = {
   contentType: null,
@@ -120,19 +120,11 @@ async function createShare() {
   return `${location.origin}/share/${state.shareId}`;
 }
 
-function init() {
-  renderChipGroup(
-    document.getElementById("content-type-group"),
-    CONTENT_TYPES,
-    (i) => i.value,
-    (i) => i.label,
-    (key) => (state.contentType = key),
-    false
-  );
-
+function renderTagGroup(genre) {
+  state.tags = [];
   renderChipGroup(
     document.getElementById("tag-group"),
-    LIKE_TAGS,
+    LIKE_TAGS_BY_GENRE[genre] || [],
     (i) => i,
     (i) => i,
     (key, selected) => {
@@ -143,6 +135,20 @@ function init() {
       }
     },
     true
+  );
+}
+
+function init() {
+  renderChipGroup(
+    document.getElementById("content-type-group"),
+    CONTENT_TYPES,
+    (i) => i.value,
+    (i) => i.label,
+    (key) => {
+      state.contentType = key;
+      renderTagGroup(key);
+    },
+    false
   );
 
   renderChipGroup(

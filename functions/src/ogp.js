@@ -1,12 +1,6 @@
 const { onRequest } = require("firebase-functions/v2/https");
 const { getFirestore } = require("firebase-admin/firestore");
 
-const CONTENT_TYPE_LABELS = {
-  movie: "映画・アニメ",
-  music: "音楽",
-  other: "エンタメ"
-};
-
 function escapeHtml(str = "") {
   return str
     .replace(/&/g, "&amp;")

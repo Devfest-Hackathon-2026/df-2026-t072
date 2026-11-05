@@ -2,8 +2,15 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { generateJson, generateTextWithImage } = require("./gemini");
 
 const CONTENT_TYPE_LABELS = {
-  movie: "映画・アニメ",
+  movie: "映画",
+  anime: "アニメ",
+  drama: "ドラマ",
   music: "音楽",
+  live: "ライブ・フェス",
+  book: "本・漫画",
+  game: "ゲーム",
+  youtube: "YouTube・動画",
+  podcast: "ポッドキャスト",
   other: "エンタメ"
 };
 
