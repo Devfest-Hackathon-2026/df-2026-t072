@@ -1,8 +1,8 @@
 const { GoogleGenAI } = require("@google/genai");
 
 const PROJECT_ID = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT;
-const LOCATION = "asia-northeast1";
-const MODEL_NAME = "gemini-2.5-flash";
+const LOCATION = "global";
+const MODEL_NAME = "gemini-3.5-flash";
 
 const ai = new GoogleGenAI({ vertexai: true, project: PROJECT_ID, location: LOCATION });
 
