@@ -266,6 +266,15 @@ textarea {
   color: var(--color-text-sub);
 }
 
+.content-image {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  display: block;
+  object-fit: cover;
+  max-height: 220px;
+}
+
 .badge-soon {
   display: inline-block;
   font-size: 11px;

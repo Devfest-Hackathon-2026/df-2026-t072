@@ -9,7 +9,7 @@ function escapeHtml(str = "") {
     .replace(/"/g, "&quot;");
 }
 
-function renderPage({ shareId, title, description }) {
+function renderPage({ shareId, title, description, imageUrl }) {
   return `<!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -19,7 +19,8 @@ function renderPage({ shareId, title, description }) {
 <meta property="og:title" content="${escapeHtml(title)}" />
 <meta property="og:description" content="${escapeHtml(description)}" />
 <meta property="og:type" content="website" />
-<meta name="twitter:card" content="summary" />
+<meta name="twitter:card" content="${imageUrl ? "summary_large_image" : "summary"}" />
+${imageUrl ? `<meta property="og:image" content="${escapeHtml(imageUrl)}" />` : ""}
 <link rel="stylesheet" href="/css/style.css" />
 <script>window.RESONATE_SHARE_ID = ${JSON.stringify(shareId)};</script>
 </head>
@@ -35,6 +36,7 @@ function renderPage({ shareId, title, description }) {
 
   <div id="content-card" class="card hidden">
     <p class="sub" id="from-label"></p>
+    <img id="content-image" class="content-image hidden" alt="" />
     <h1 id="content-title"></h1>
     <p id="content-type-label" class="sub"></p>
     <p id="message-inner"></p>
@@ -95,5 +97,5 @@ exports.ogp = onRequest({ region: "asia-northeast1" }, async (req, res) => {
   const description = share.messageOuter || "Resonateで好きなものが届きました";
 
   res.set("Cache-Control", "public, max-age=60");
-  res.status(200).send(renderPage({ shareId, title, description }));
+  res.status(200).send(renderPage({ shareId, title, description, imageUrl: share.imageUrl || null }));
 });

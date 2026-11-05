@@ -17,7 +17,8 @@ const state = {
   screenshotBase64: null,
   shareId: null,
   messageOuter: "",
-  messageInner: ""
+  messageInner: "",
+  imageUrl: null
 };
 
 let currentUser = null;
@@ -90,6 +91,7 @@ async function generateMessages() {
 
   state.messageOuter = result.data.messageOuter;
   state.messageInner = result.data.messageInner;
+  state.imageUrl = result.data.imageUrl || null;
 
   document.getElementById("message-outer").value = state.messageOuter;
   document.getElementById("message-inner").value = state.messageInner;
@@ -111,6 +113,7 @@ async function createShare() {
     disclosureLevel: state.disclosureLevel,
     messageOuter: state.messageOuter,
     messageInner: state.messageInner,
+    imageUrl: state.imageUrl,
     scoreTriggerType: state.disclosureLevel === "deep" ? "cumulative" : "instant",
     createdAt: serverTimestamp(),
     senderId: currentUser.uid,

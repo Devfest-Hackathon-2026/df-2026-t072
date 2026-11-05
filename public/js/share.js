@@ -82,6 +82,12 @@ async function init() {
   document.getElementById("content-type-label").textContent = contentTypeLabel(share.contentType);
   document.getElementById("message-inner").textContent = share.messageInner;
 
+  if (share.imageUrl) {
+    const img = document.getElementById("content-image");
+    img.src = share.imageUrl;
+    img.classList.remove("hidden");
+  }
+
   showCard("content-card");
   document.getElementById("reaction-card").classList.remove("hidden");
 

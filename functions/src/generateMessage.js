@@ -1,5 +1,6 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { generateJson, generateTextWithImage } = require("./gemini");
+const { fetchThumbnail, CUSTOM_SEARCH_API_KEY, CUSTOM_SEARCH_CSE_ID } = require("./imageSearch");
 
 const CONTENT_TYPE_LABELS = {
   movie: "映画",
@@ -52,21 +53,30 @@ async function extractToneHint(screenshotBase64) {
   }
 }
 
-exports.generateMessage = onCall({ region: "asia-northeast1" }, async (request) => {
-  const { contentType, contentTitle, tags, disclosureLevel, screenshotBase64 } = request.data;
+exports.generateMessage = onCall(
+  { region: "asia-northeast1", secrets: [CUSTOM_SEARCH_API_KEY, CUSTOM_SEARCH_CSE_ID] },
+  async (request) => {
+    const { contentType, contentTitle, tags, disclosureLevel, screenshotBase64 } = request.data;
 
-  if (!contentType || !contentTitle || !disclosureLevel) {
-    throw new HttpsError("invalid-argument", "contentType, contentTitle, disclosureLevel は必須です");
+    if (!contentType || !contentTitle || !disclosureLevel) {
+      throw new HttpsError("invalid-argument", "contentType, contentTitle, disclosureLevel は必須です");
+    }
+
+    const toneHint = await extractToneHint(screenshotBase64);
+    const prompt = buildPrompt({ contentType, contentTitle, tags, disclosureLevel, toneHint });
+
+    let messageOuter;
+    let messageInner;
+    try {
+      ({ messageOuter, messageInner } = await generateJson(prompt));
+    } catch (err) {
+      console.error("generateMessage failed", err);
+      throw new HttpsError("internal", "メッセージの生成に失敗しました");
+    }
+
+    const typeLabel = CONTENT_TYPE_LABELS[contentType] || contentType;
+    const imageUrl = await fetchThumbnail(`${contentTitle} ${typeLabel}`);
+
+    return { messageOuter, messageInner, imageUrl };
   }
-
-  const toneHint = await extractToneHint(screenshotBase64);
-  const prompt = buildPrompt({ contentType, contentTitle, tags, disclosureLevel, toneHint });
-
-  try {
-    const { messageOuter, messageInner } = await generateJson(prompt);
-    return { messageOuter, messageInner };
-  } catch (err) {
-    console.error("generateMessage failed", err);
-    throw new HttpsError("internal", "メッセージの生成に失敗しました");
-  }
-});
+);
