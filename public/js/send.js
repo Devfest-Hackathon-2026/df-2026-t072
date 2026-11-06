@@ -353,7 +353,7 @@ function init() {
 
     const lineText = `${state.messageOuter}\n${shareUrl}`;
     const lineUrl = `https://line.me/R/msg/text/?text=${encodeURIComponent(lineText)}`;
-    window.open(lineUrl, "_blank");
+    window.open(lineUrl, "_blank", "noopener,noreferrer");
 
     goToStep(5);
   });
