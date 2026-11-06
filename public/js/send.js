@@ -77,7 +77,7 @@ async function generateMessages() {
   const generatingCard = document.getElementById("generating-card");
   const previewCard = document.getElementById("preview-card");
   const previewInnerCard = document.getElementById("preview-inner-card");
-  const nav = document.getElementById("step4-nav");
+  const nav = document.getElementById("preview-nav");
 
   generatingCard.classList.remove("hidden");
   previewCard.classList.add("hidden");
@@ -312,35 +312,29 @@ function init() {
     state.sourceUrl = null;
   });
 
-  document.getElementById("step1-next").addEventListener("click", () => {
+  document.getElementById("generate-btn").addEventListener("click", async () => {
     state.contentTitle = document.getElementById("content-title").value.trim();
     state.senderName = document.getElementById("sender-name").value.trim();
     state.recipientMemo = document.getElementById("recipient-memo").value.trim();
+
     if (!state.contentType || !state.contentTitle) {
       alert("コンテンツの種類とタイトルを入力してね");
       return;
     }
-    goToStep(2);
-  });
-
-  document.getElementById("step2-next").addEventListener("click", () => {
     if (state.tags.length === 0) {
       alert("好きなところを1つ以上選んでね");
       return;
     }
-    goToStep(3);
-  });
-
-  document.getElementById("step3-next").addEventListener("click", async () => {
     if (!state.disclosureLevel) {
       alert("温度感を選んでね");
       return;
     }
+
     const fileInput = document.getElementById("screenshot-input");
     if (fileInput.files[0]) {
       state.screenshotBase64 = await readFileAsBase64(fileInput.files[0]);
     }
-    goToStep(4);
+    goToStep(2);
     await generateMessages();
   });
 
@@ -355,7 +349,7 @@ function init() {
     const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`;
     window.open(lineUrl, "_blank");
 
-    goToStep(5);
+    goToStep(3);
   });
 
   document.getElementById("copy-link-btn").addEventListener("click", () => {

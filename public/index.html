@@ -53,28 +53,13 @@
       <p class="sub">任意：誰に送ったか自分が後で分かるように。相手には表示されません</p>
       <input type="text" id="recipient-memo" placeholder="例：さくらちゃん" />
     </div>
-    <div class="nav-buttons">
-      <button class="btn btn-primary" id="step1-next">次へ</button>
-    </div>
-  </section>
-
-  <!-- Step 2: ここが好きタグ選択 -->
-  <section class="step" data-step="2">
     <div class="card">
-      <h1>ここが好き</h1>
+      <h2>ここが好き</h2>
       <p class="sub">当てはまるものを選んでね（複数選択OK）</p>
       <div class="chip-group" id="tag-group"></div>
     </div>
-    <div class="nav-buttons">
-      <button class="btn btn-secondary" data-back>戻る</button>
-      <button class="btn btn-primary" id="step2-next">次へ</button>
-    </div>
-  </section>
-
-  <!-- Step 3: 送る温度感選択 -->
-  <section class="step" data-step="3">
     <div class="card">
-      <h1>どのくらい伝える？</h1>
+      <h2>どのくらい伝える？</h2>
       <p class="sub">温度感を選んでね</p>
       <div class="chip-group" id="disclosure-group"></div>
     </div>
@@ -84,13 +69,12 @@
       <input type="file" id="screenshot-input" accept="image/*" />
     </div>
     <div class="nav-buttons">
-      <button class="btn btn-secondary" data-back>戻る</button>
-      <button class="btn btn-primary" id="step3-next">メッセージを作る</button>
+      <button class="btn btn-primary" id="generate-btn">メッセージを作る</button>
     </div>
   </section>
 
-  <!-- Step 4: メッセージプレビュー -->
-  <section class="step" data-step="4">
+  <!-- Step 2: メッセージプレビュー -->
+  <section class="step" data-step="2">
     <div class="card" id="generating-card">
       <p class="loading">メッセージを生成中...</p>
     </div>
@@ -103,14 +87,14 @@
       <h2>リンクを開くと見える内容</h2>
       <textarea id="message-inner"></textarea>
     </div>
-    <div class="nav-buttons hidden" id="step4-nav">
+    <div class="nav-buttons hidden" id="preview-nav">
       <button class="btn btn-secondary" data-back>戻る</button>
       <button class="btn btn-line" id="send-line-btn">LINEで送る</button>
     </div>
   </section>
 
-  <!-- Step 5: 送信完了 -->
-  <section class="step" data-step="5">
+  <!-- Step 3: 送信完了 -->
+  <section class="step" data-step="3">
     <div class="card">
       <h1>送信リンクができたよ</h1>
       <p class="sub">LINEアプリが開かなかった場合はこちらのリンクをコピーして送ってね</p>
