@@ -96,16 +96,38 @@ ${items.map((item, i) => `${i}: [${item.contentType}] ${item.contentTitle}`).joi
 
 各候補について、「自分が実際に好きな理由（傾向）」と「相手の人物像」が、具体的にどう重なっているかが分かる理由を書いてください（20〜40文字程度）。
 
-出力形式: {"selections": [{"index": 2, "reason": "..."}, {"index": 0, "reason": "..."}]}
+さらに、ベン図で2人の関係を表すための情報も出してください。
+- yourTendency: 一覧全体から読み取れる、自分の好みの傾向を2〜8文字程度で（例：プロレス・コメディ）
+- theirTendency: 相手の人物像から読み取れる傾向を2〜8文字程度で（例：K-POP・アニメ）
+- overlapTags: 選んだ候補に共通する、2人の重なりを表すキーワードを2〜4個（例：["笑える", "テンポが良い"]）
+
+出力形式: {
+  "selections": [{"index": 2, "reason": "..."}, {"index": 0, "reason": "..."}],
+  "yourTendency": "...",
+  "theirTendency": "...",
+  "overlapTags": ["...", "..."]
+}
 `.trim();
 }
 
 async function selectForPersona(items, personName, personDescription) {
   const prompt = buildOverlapPrompt(items, personName, personDescription);
-  const { selections } = await generateJson(prompt);
-  const valid = (selections || []).filter((s) => s && Number.isInteger(s.index) && items[s.index]);
+  const data = await generateJson(prompt);
+  const valid = (data.selections || []).filter((s) => s && Number.isInteger(s.index) && items[s.index]);
   const selected = valid.slice(0, 5).map((s) => ({ ...items[s.index], reason: s.reason || "" }));
-  return selected.length > 0 ? selected : pickDiverseByGenre(items, 5);
+
+  if (selected.length === 0) {
+    return { candidates: pickDiverseByGenre(items, 5), venn: null };
+  }
+
+  return {
+    candidates: selected,
+    venn: {
+      yourTendency: data.yourTendency || "",
+      theirTendency: data.theirTendency || "",
+      overlapTags: Array.isArray(data.overlapTags) ? data.overlapTags.slice(0, 4) : []
+    }
+  };
 }
 
 function buildClassifyPrompt(titles) {
@@ -165,10 +187,12 @@ exports.suggestFromYoutube = onCall({ region: "asia-northeast1" }, async (reques
 
   try {
     const classified = await classifyGenres(items);
-    const candidates = hasPersona
-      ? await selectForPersona(classified, personName, personDescription)
-      : pickDiverseByGenre(classified, 5);
-    return { candidates, source, matchedPersona: hasPersona };
+    if (hasPersona) {
+      const { candidates, venn } = await selectForPersona(classified, personName, personDescription);
+      return { candidates, source, matchedPersona: Boolean(venn), venn };
+    }
+    const candidates = pickDiverseByGenre(classified, 5);
+    return { candidates, source, matchedPersona: false, venn: null };
   } catch (err) {
     console.error("suggestFromYoutube classify failed", err);
     const candidates = items.slice(0, 5).map((item) => ({
@@ -177,6 +201,6 @@ exports.suggestFromYoutube = onCall({ region: "asia-northeast1" }, async (reques
       thumbnailUrl: item.thumbnailUrl,
       sourceUrl: item.sourceUrl
     }));
-    return { candidates, source };
+    return { candidates, source, matchedPersona: false, venn: null };
   }
 });

@@ -3,6 +3,8 @@
   --color-surface: #ffffff;
   --color-primary: #ff7a59;
   --color-primary-dark: #e85d3d;
+  --color-accent: #4f9ddb;
+  --color-accent-dark: #2f7bb8;
   --color-text: #2d2a26;
   --color-text-sub: #8a8178;
   --color-border: #f0e4da;
@@ -248,6 +250,35 @@ textarea {
   flex-direction: column;
   gap: 8px;
   margin-top: 12px;
+}
+
+.venn-diagram {
+  margin: 4px 0 14px;
+  text-align: center;
+}
+
+.venn-diagram svg {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+}
+
+.venn-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.venn-label.mine {
+  fill: var(--color-primary-dark);
+}
+
+.venn-label.theirs {
+  fill: var(--color-accent-dark);
+}
+
+.venn-tag {
+  font-size: 11px;
+  fill: var(--color-text);
 }
 
 .persona-candidate {

@@ -164,6 +164,41 @@ function selectCandidate(c) {
   state.sourceUrl = c.sourceUrl || null;
 }
 
+function escapeHtml(str = "") {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function renderVennDiagram(venn, containerId) {
+  const container = document.getElementById(containerId);
+
+  if (!venn || (!venn.yourTendency && !venn.theirTendency && (venn.overlapTags || []).length === 0)) {
+    container.classList.add("hidden");
+    container.innerHTML = "";
+    return;
+  }
+
+  const tagLines = (venn.overlapTags || [])
+    .map((tag, i) => `<text x="150" y="${78 + i * 15}" text-anchor="middle" class="venn-tag">${escapeHtml(tag)}</text>`)
+    .join("");
+
+  container.innerHTML = `
+    <svg viewBox="0 0 300 170" role="img" aria-label="あなたと相手の好みが重なる図">
+      <circle cx="115" cy="85" r="70" fill="#ff7a59" fill-opacity="0.22" stroke="#e85d3d" stroke-opacity="0.5" />
+      <circle cx="185" cy="85" r="70" fill="#4f9ddb" fill-opacity="0.22" stroke="#2f7bb8" stroke-opacity="0.5" />
+      <text x="50" y="35" text-anchor="middle" class="venn-label mine">あなた</text>
+      <text x="50" y="52" text-anchor="middle" class="venn-label mine">${escapeHtml(venn.yourTendency)}</text>
+      <text x="250" y="35" text-anchor="middle" class="venn-label theirs">相手</text>
+      <text x="250" y="52" text-anchor="middle" class="venn-label theirs">${escapeHtml(venn.theirTendency)}</text>
+      ${tagLines}
+    </svg>
+  `;
+  container.classList.remove("hidden");
+}
+
 function renderCandidates(candidates, containerId) {
   const container = document.getElementById(containerId);
   container.innerHTML = "";
@@ -259,7 +294,9 @@ function setupYoutubeSuggest() {
           return;
         }
 
+        const venn = document.getElementById("youtube-venn");
         results.classList.add("hidden");
+        venn.classList.add("hidden");
         loading.classList.remove("hidden");
 
         const personName = document.getElementById("persona-name").value.trim();
@@ -277,6 +314,7 @@ function setupYoutubeSuggest() {
             ...c,
             reason: result.data.matchedPersona ? c.reason || sourceLabel : sourceLabel
           }));
+          renderVennDiagram(result.data.matchedPersona ? result.data.venn : null, "youtube-venn");
           renderCandidates(candidates, "youtube-suggest-results");
         } catch (err) {
           console.error("suggestFromYoutube failed", err);
