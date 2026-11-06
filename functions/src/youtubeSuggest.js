@@ -29,7 +29,7 @@ async function fetchLikedVideoTitles(accessToken) {
   if (!likesPlaylistId) return [];
 
   const itemsData = await callYoutubeApi(
-    `playlistItems?part=snippet&maxResults=15&playlistId=${likesPlaylistId}`,
+    `playlistItems?part=snippet&maxResults=50&playlistId=${likesPlaylistId}`,
     accessToken
   );
   return (itemsData.items || []).map((i) => i.snippet.title).filter(Boolean);
@@ -37,10 +37,27 @@ async function fetchLikedVideoTitles(accessToken) {
 
 async function fetchSubscriptionChannelTitles(accessToken) {
   const subsData = await callYoutubeApi(
-    "subscriptions?part=snippet&mine=true&maxResults=15",
+    "subscriptions?part=snippet&mine=true&maxResults=50",
     accessToken
   );
   return (subsData.items || []).map((i) => i.snippet.title).filter(Boolean);
+}
+
+function pickDiverseByGenre(candidates, limit) {
+  const seenGenres = new Set();
+  const primary = [];
+  const rest = [];
+
+  for (const c of candidates) {
+    if (!seenGenres.has(c.contentType)) {
+      seenGenres.add(c.contentType);
+      primary.push(c);
+    } else {
+      rest.push(c);
+    }
+  }
+
+  return [...primary, ...rest].slice(0, limit);
 }
 
 function buildClassifyPrompt(titles) {
@@ -95,14 +112,13 @@ exports.suggestFromYoutube = onCall({ region: "asia-northeast1" }, async (reques
     throw new HttpsError("not-found", "YouTubeの視聴データが見つかりませんでした");
   }
 
-  const topTitles = titles.slice(0, 5);
-
   try {
-    const candidates = await classifyGenres(topTitles);
+    const classified = await classifyGenres(titles);
+    const candidates = pickDiverseByGenre(classified, 5);
     return { candidates, source };
   } catch (err) {
     console.error("suggestFromYoutube classify failed", err);
-    const candidates = topTitles.map((title) => ({ contentType: "youtube", contentTitle: title }));
+    const candidates = titles.slice(0, 5).map((title) => ({ contentType: "youtube", contentTitle: title }));
     return { candidates, source };
   }
 });
