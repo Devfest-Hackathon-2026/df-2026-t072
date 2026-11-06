@@ -15,13 +15,26 @@ const CONTENT_TYPE_LABELS = {
   other: "エンタメ"
 };
 
-function buildPrompt({ contentType, contentTitle, tags, disclosureLevel, toneHint }) {
+function buildPrompt({
+  contentType,
+  contentTitle,
+  tags,
+  disclosureLevel,
+  toneHint,
+  personName,
+  personDescription,
+  relationshipStage
+}) {
   const typeLabel = CONTENT_TYPE_LABELS[contentType] || contentType;
   const tagText = (tags || []).join("、");
   const depthInstruction =
     disclosureLevel === "deep"
       ? "内側メッセージは、なぜ好きなのかを少し具体的に、熱量が伝わるように書いてください。"
       : "内側メッセージは、さらっと一言添える程度の軽さにしてください。";
+  const relationshipInstruction =
+    relationshipStage === "new"
+      ? "相手とはまだあまり話したことがない関係です。内側メッセージでは「なぜこれを送ったのか」「なぜ相手に合いそうだと思ったのか」の理由を、唐突で不審に見えないようはっきり丁寧に書いてください。"
+      : "相手とはよく話す関係です。説明しすぎず、気軽なトーンで大丈夫です。";
 
   return `
 あなたは友人に「好きなエンタメ」をさりげなく共有するのを手伝うアシスタントです。
@@ -30,12 +43,14 @@ function buildPrompt({ contentType, contentTitle, tags, disclosureLevel, toneHin
 コンテンツ種別: ${typeLabel}
 タイトル: ${contentTitle}
 好きなポイント: ${tagText}
+${personName ? `送る相手: ${personName}${personDescription ? `（${personDescription}）` : ""}` : ""}
 ${toneHint ? `相手とのいつものやり取りのトーン: ${toneHint}` : ""}
 
 - messageOuter: LINEのトーク画面に表示する、さりげない一言（20〜40文字程度、絵文字は控えめに）
 - messageInner: リンクを開いたときに見える、なぜこれを選んだかという内容（${disclosureLevel === "deep" ? "80〜150文字程度" : "40〜80文字程度"}）
 
 ${depthInstruction}
+${relationshipInstruction}
 
 出力形式: {"messageOuter": "...", "messageInner": "..."}
 `.trim();
@@ -56,14 +71,33 @@ async function extractToneHint(screenshotBase64) {
 exports.generateMessage = onCall(
   { region: "asia-northeast1", secrets: [CUSTOM_SEARCH_API_KEY, CUSTOM_SEARCH_CSE_ID] },
   async (request) => {
-    const { contentType, contentTitle, tags, disclosureLevel, screenshotBase64, knownImageUrl } = request.data;
+    const {
+      contentType,
+      contentTitle,
+      tags,
+      disclosureLevel,
+      screenshotBase64,
+      knownImageUrl,
+      personName,
+      personDescription,
+      relationshipStage
+    } = request.data;
 
     if (!contentType || !contentTitle || !disclosureLevel) {
       throw new HttpsError("invalid-argument", "contentType, contentTitle, disclosureLevel は必須です");
     }
 
     const toneHint = await extractToneHint(screenshotBase64);
-    const prompt = buildPrompt({ contentType, contentTitle, tags, disclosureLevel, toneHint });
+    const prompt = buildPrompt({
+      contentType,
+      contentTitle,
+      tags,
+      disclosureLevel,
+      toneHint,
+      personName,
+      personDescription,
+      relationshipStage
+    });
 
     let messageOuter;
     let messageInner;

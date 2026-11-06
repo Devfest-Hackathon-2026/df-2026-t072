@@ -6,16 +6,20 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { db, functions, waitForUser } from "./auth.js";
-import { CONTENT_TYPES, LIKE_TAGS_BY_GENRE, DISCLOSURE_LEVELS } from "./constants.js";
+import { CONTENT_TYPES, LIKE_TAGS_BY_GENRE, DISCLOSURE_LEVELS, RELATIONSHIP_STAGES } from "./constants.js";
 import { YOUTUBE_CLIENT_ID } from "./youtube-config.js";
 
+const TOTAL_STEPS = 5;
+
 const state = {
+  personName: "",
+  personDescription: "",
   contentType: null,
   contentTitle: "",
   senderName: "",
-  recipientMemo: "",
   tags: [],
   disclosureLevel: null,
+  relationshipStage: null,
   screenshotBase64: null,
   shareId: null,
   messageOuter: "",
@@ -66,10 +70,25 @@ function renderChipGroup(container, items, getKey, getLabel, onToggle, multi) {
   });
 }
 
+function renderStepIndicator(stepNumber) {
+  const el = document.getElementById("step-indicator");
+  el.innerHTML = "";
+  for (let i = 1; i <= TOTAL_STEPS; i += 1) {
+    const dot = document.createElement("span");
+    dot.className = "step-dot";
+    if (i === stepNumber) dot.classList.add("current");
+    if (i < stepNumber) dot.classList.add("done");
+    dot.textContent = String(i);
+    el.appendChild(dot);
+  }
+}
+
 function goToStep(stepNumber) {
   document.querySelectorAll(".step").forEach((el) => {
     el.classList.toggle("active", Number(el.dataset.step) === stepNumber);
   });
+  renderStepIndicator(stepNumber);
+  window.scrollTo(0, 0);
 }
 
 function setupNav() {
@@ -91,10 +110,16 @@ function readFileAsBase64(file) {
 }
 
 async function generateMessages() {
+  state.shareId = null;
+
   const generatingCard = document.getElementById("generating-card");
   const previewCard = document.getElementById("preview-card");
   const previewInnerCard = document.getElementById("preview-inner-card");
   const nav = document.getElementById("preview-nav");
+
+  document.getElementById("done-card").classList.add("hidden");
+  document.getElementById("done-nav").classList.add("hidden");
+  document.getElementById("done-nav-2").classList.add("hidden");
 
   generatingCard.classList.remove("hidden");
   previewCard.classList.add("hidden");
@@ -108,7 +133,10 @@ async function generateMessages() {
     tags: state.tags,
     disclosureLevel: state.disclosureLevel,
     screenshotBase64: state.screenshotBase64,
-    knownImageUrl: state.knownImageUrl
+    knownImageUrl: state.knownImageUrl,
+    personName: state.personName || undefined,
+    personDescription: state.personDescription || undefined,
+    relationshipStage: state.relationshipStage
   });
 
   state.messageOuter = result.data.messageOuter;
@@ -148,6 +176,7 @@ async function ensureShareCreated() {
     contentTitle: state.contentTitle,
     contentTags: state.tags,
     disclosureLevel: state.disclosureLevel,
+    relationshipStage: state.relationshipStage,
     messageOuter: state.messageOuter,
     messageInner: state.messageInner,
     imageUrl: state.imageUrl,
@@ -156,7 +185,7 @@ async function ensureShareCreated() {
     createdAt: serverTimestamp(),
     senderId: currentUser.uid,
     senderName: state.senderName || "だれか",
-    recipientMemo: state.recipientMemo
+    recipientMemo: state.personName
   });
 
   return `${location.origin}/share/${state.shareId}`;
@@ -211,8 +240,8 @@ function renderVennDiagram(venn, containerId) {
 
   container.innerHTML = `
     <svg viewBox="0 0 300 170" role="img" aria-label="あなたと相手の好みが重なる図">
-      <circle cx="115" cy="85" r="70" fill="#ff7a59" fill-opacity="0.22" stroke="#e85d3d" stroke-opacity="0.5" />
-      <circle cx="185" cy="85" r="70" fill="#4f9ddb" fill-opacity="0.22" stroke="#2f7bb8" stroke-opacity="0.5" />
+      <circle cx="115" cy="85" r="70" fill="#378adb" fill-opacity="0.22" stroke="#2868a8" stroke-opacity="0.5" />
+      <circle cx="185" cy="85" r="70" fill="#ff8c5a" fill-opacity="0.22" stroke="#e06a3a" stroke-opacity="0.5" />
       <text x="50" y="35" text-anchor="middle" class="venn-label mine">あなた</text>
       <text x="50" y="52" text-anchor="middle" class="venn-label mine">${escapeHtml(venn.yourTendency)}</text>
       <text x="250" y="35" text-anchor="middle" class="venn-label theirs">相手</text>
@@ -229,7 +258,6 @@ function renderCandidates(candidates, containerId, onClose) {
 
   if (candidates.length === 0) {
     container.classList.add("hidden");
-    alert("提案を作れなかったみたい。もう一度試してね");
     return;
   }
 
@@ -281,92 +309,94 @@ function renderCandidates(candidates, containerId, onClose) {
   container.classList.remove("hidden");
 }
 
-function setupPersonaSuggest() {
-  const btn = document.getElementById("persona-suggest-btn");
-  onClickOnce(btn, async () => {
-    const personName = document.getElementById("persona-name").value.trim();
-    const personDescription = document.getElementById("persona-description").value.trim();
-    if (!personName || !personDescription) {
-      alert("相手の名前と人物像を入力してね");
-      return;
-    }
-
-    const loading = document.getElementById("persona-suggest-loading");
-    const results = document.getElementById("persona-suggest-results");
-    results.classList.add("hidden");
-    loading.classList.remove("hidden");
-
-    try {
-      const suggestContentForPerson = httpsCallable(functions, "suggestContentForPerson");
-      const result = await suggestContentForPerson({ personName, personDescription });
-      renderCandidates(result.data.candidates || [], "persona-suggest-results");
-    } catch (err) {
-      console.error("suggestContentForPerson failed", err);
-      alert("提案の生成に失敗しました。もう一度試してね");
-    } finally {
-      loading.classList.add("hidden");
-    }
+async function fetchPersonaOnlyCandidates() {
+  if (!state.personDescription) {
+    return;
+  }
+  const suggestContentForPerson = httpsCallable(functions, "suggestContentForPerson");
+  const result = await suggestContentForPerson({
+    personName: state.personName,
+    personDescription: state.personDescription
   });
+  renderCandidates(result.data.candidates || [], "step3-candidates");
 }
 
-function setupYoutubeSuggest() {
-  const btn = document.getElementById("youtube-suggest-btn");
+function setupStep2() {
+  const connectBtn = document.getElementById("youtube-connect-btn");
+  const skipBtn = document.getElementById("youtube-skip-btn");
+  const loading = document.getElementById("youtube-connect-loading");
 
-  btn.addEventListener("click", () => {
-    if (btn.disabled) return;
+  skipBtn.addEventListener("click", async () => {
+    if (skipBtn.disabled) return;
+    document.getElementById("step3-venn").classList.add("hidden");
+
+    const hasDescription = Boolean(state.personDescription);
+    if (hasDescription) {
+      skipBtn.disabled = true;
+      skipBtn.textContent = "候補を考え中...";
+    }
+
+    try {
+      await fetchPersonaOnlyCandidates();
+    } catch (err) {
+      console.error("suggestContentForPerson failed", err);
+    } finally {
+      skipBtn.disabled = false;
+      skipBtn.textContent = "連携しない場合はスキップ";
+    }
+    goToStep(3);
+  });
+
+  connectBtn.addEventListener("click", () => {
+    if (connectBtn.disabled) return;
 
     if (!window.google?.accounts?.oauth2) {
       alert("Googleログインの読み込みに失敗しました。ページを再読み込みしてね");
       return;
     }
 
-    const loading = document.getElementById("youtube-suggest-loading");
-    const results = document.getElementById("youtube-suggest-results");
-    const venn = document.getElementById("youtube-venn");
-
-    btn.disabled = true;
+    connectBtn.disabled = true;
 
     const tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: YOUTUBE_CLIENT_ID,
       scope: "https://www.googleapis.com/auth/youtube.readonly",
       error_callback: () => {
-        btn.disabled = false;
+        connectBtn.disabled = false;
       },
       callback: async (response) => {
         if (response.error) {
           console.error("youtube oauth failed", response);
           alert("YouTubeとの連携に失敗しました");
-          btn.disabled = false;
+          connectBtn.disabled = false;
           return;
         }
 
-        results.classList.add("hidden");
-        venn.classList.add("hidden");
         loading.classList.remove("hidden");
-
-        const personName = document.getElementById("persona-name").value.trim();
-        const personDescription = document.getElementById("persona-description").value.trim();
 
         try {
           const suggestFromYoutube = httpsCallable(functions, "suggestFromYoutube");
           const result = await suggestFromYoutube({
             accessToken: response.access_token,
-            personName: personName || undefined,
-            personDescription: personDescription || undefined
+            personName: state.personName || undefined,
+            personDescription: state.personDescription || undefined
           });
           const sourceLabel = result.data.source === "likes" ? "YouTubeでいいねしてた動画" : "登録チャンネル";
           const candidates = (result.data.candidates || []).map((c) => ({
             ...c,
             reason: result.data.matchedPersona ? c.reason || sourceLabel : sourceLabel
           }));
-          renderVennDiagram(result.data.matchedPersona ? result.data.venn : null, "youtube-venn");
-          renderCandidates(candidates, "youtube-suggest-results", () => venn.classList.add("hidden"));
+          renderVennDiagram(result.data.matchedPersona ? result.data.venn : null, "step3-venn");
+          renderCandidates(candidates, "step3-candidates", () =>
+            document.getElementById("step3-venn").classList.add("hidden")
+          );
+          goToStep(3);
         } catch (err) {
           console.error("suggestFromYoutube failed", err);
-          alert("提案の生成に失敗しました。もう一度試してね");
+          alert("候補の生成に失敗しました。スキップして自分で入力してね");
+          goToStep(3);
         } finally {
           loading.classList.add("hidden");
-          btn.disabled = false;
+          connectBtn.disabled = false;
         }
       }
     });
@@ -397,9 +427,18 @@ function init() {
     false
   );
 
+  renderChipGroup(
+    document.getElementById("relationship-group"),
+    RELATIONSHIP_STAGES,
+    (i) => i.value,
+    (i) => i.label,
+    (key) => (state.relationshipStage = key),
+    false
+  );
+
   setupNav();
-  setupPersonaSuggest();
-  setupYoutubeSuggest();
+  setupStep2();
+  renderStepIndicator(1);
 
   document.getElementById("content-title").addEventListener("input", () => {
     state.knownImageUrl = null;
@@ -424,15 +463,30 @@ function init() {
     updateCharCount("message-inner", "message-inner-count")
   );
 
-  onClickOnce(document.getElementById("generate-btn"), async () => {
-    state.contentTitle = document.getElementById("content-title").value.trim();
-    state.senderName = document.getElementById("sender-name").value.trim();
-    state.recipientMemo = document.getElementById("recipient-memo").value.trim();
+  document.getElementById("step1-next").addEventListener("click", () => {
+    state.personName = document.getElementById("persona-name").value.trim();
+    state.personDescription = document.getElementById("persona-description").value.trim();
 
-    if (!state.contentType || !state.contentTitle) {
-      alert("コンテンツの種類とタイトルを入力してね");
+    if (!state.personName) {
+      alert("相手の名前を入力してね");
       return;
     }
+    goToStep(2);
+  });
+
+  document.getElementById("step3-next").addEventListener("click", () => {
+    state.contentTitle = document.getElementById("content-title").value.trim();
+
+    if (!state.contentType || !state.contentTitle) {
+      alert("コンテンツの種類とタイトルを選んでね");
+      return;
+    }
+    goToStep(4);
+  });
+
+  onClickOnce(document.getElementById("generate-btn"), async () => {
+    state.senderName = document.getElementById("sender-name").value.trim();
+
     if (state.tags.length === 0) {
       alert("好きなところを1つ以上選んでね");
       return;
@@ -441,12 +495,16 @@ function init() {
       alert("温度感を選んでね");
       return;
     }
+    if (!state.relationshipStage) {
+      alert("相手との関係性を選んでね");
+      return;
+    }
 
     const fileInput = document.getElementById("screenshot-input");
     if (fileInput.files[0]) {
       state.screenshotBase64 = await readFileAsBase64(fileInput.files[0]);
     }
-    goToStep(2);
+    goToStep(5);
     await generateMessages();
   });
 
@@ -455,24 +513,29 @@ function init() {
     state.messageInner = document.getElementById("message-inner").value;
   }
 
+  function showDoneScreen(shareUrl) {
+    document.getElementById("share-url").value = shareUrl;
+    document.getElementById("done-card").classList.remove("hidden");
+    document.getElementById("done-nav").classList.remove("hidden");
+    document.getElementById("done-nav-2").classList.remove("hidden");
+  }
+
   onClickOnce(document.getElementById("send-line-btn"), async () => {
     captureMessageEdits();
 
     const shareUrl = await ensureShareCreated();
-    document.getElementById("share-url").value = shareUrl;
 
     const lineText = `${state.messageOuter}\n${shareUrl}`;
     const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`;
     window.open(lineUrl, "_blank");
 
-    goToStep(3);
+    showDoneScreen(shareUrl);
   });
 
   onClickOnce(document.getElementById("other-share-btn"), async () => {
     captureMessageEdits();
 
     const shareUrl = await ensureShareCreated();
-    document.getElementById("share-url").value = shareUrl;
 
     try {
       await navigator.share({ text: `${state.messageOuter}\n${shareUrl}` });
@@ -482,7 +545,7 @@ function init() {
       }
     }
 
-    goToStep(3);
+    showDoneScreen(shareUrl);
   });
 
   document.getElementById("copy-link-btn").addEventListener("click", () => {

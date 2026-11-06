@@ -42,6 +42,11 @@ export const DISCLOSURE_LEVELS = [
   { value: "deep", label: "ディープ（じっくり共有）" }
 ];
 
+export const RELATIONSHIP_STAGES = [
+  { value: "familiar", label: "よく話す" },
+  { value: "new", label: "まだあまり話したことがない" }
+];
+
 export const REACTIONS = [
   { emoji: "🔥", label: "めちゃ気になる", value: "fire" },
   { emoji: "👀", label: "観てみたい", value: "interested" },

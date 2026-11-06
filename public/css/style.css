@@ -1,13 +1,13 @@
 :root {
-  --color-bg: #fff8f3;
+  --color-bg: #f3f8fd;
   --color-surface: #ffffff;
-  --color-primary: #ff7a59;
-  --color-primary-dark: #e85d3d;
-  --color-accent: #4f9ddb;
-  --color-accent-dark: #2f7bb8;
-  --color-text: #2d2a26;
-  --color-text-sub: #8a8178;
-  --color-border: #f0e4da;
+  --color-primary: #378adb;
+  --color-primary-dark: #2868a8;
+  --color-accent: #ff8c5a;
+  --color-accent-dark: #e06a3a;
+  --color-text: #22313f;
+  --color-text-sub: #7891a5;
+  --color-border: #dfeaf5;
   --radius: 16px;
   --font: "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
 }
@@ -49,6 +49,51 @@ header.app-header .logo {
   font-size: 13px;
   color: var(--color-text-sub);
   text-decoration: none;
+}
+
+.step-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.step-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-sub);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.step-dot.current {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.step-dot.done {
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+}
+
+.btn-text {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: 12px;
+  background: none;
+  border: none;
+  color: var(--color-text-sub);
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .card {
@@ -141,7 +186,7 @@ textarea {
 }
 
 .btn-primary:disabled {
-  background: #f2cdbf;
+  background: #b9d4ec;
   cursor: not-allowed;
 }
 
@@ -187,7 +232,7 @@ textarea {
 
 .reaction-btn.selected {
   border-color: var(--color-primary);
-  background: #fff1ec;
+  background: #e8f2fc;
 }
 
 .flame-display {
@@ -338,7 +383,7 @@ textarea {
   font-size: 11px;
   font-weight: 600;
   color: var(--color-primary-dark);
-  background: #fff1ec;
+  background: #e8f2fc;
   border: 1px solid var(--color-primary);
   border-radius: 999px;
   padding: 2px 10px;

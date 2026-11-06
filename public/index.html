@@ -16,44 +16,60 @@
     <a class="header-nav-link" href="mypage.html">マイページ</a>
   </header>
 
-  <!-- Step 1: コンテンツ選択 -->
+  <div class="step-indicator" id="step-indicator"></div>
+
+  <!-- Step 1: 相手の情報入力 -->
   <section class="step active" data-step="1">
     <div class="card">
-      <h1>何を共有する？<span class="badge-required">必須</span></h1>
-      <p class="sub">好きなジャンルを選んでね</p>
-      <div class="chip-group" id="content-type-group"></div>
-    </div>
-    <div class="card">
-      <h2>タイトル<span class="badge-required">必須</span></h2>
-      <input type="text" id="content-title" placeholder="例：君の名は。" aria-label="タイトル" />
-    </div>
-    <div class="card">
-      <h2>相手に合わせてAIに提案してもらう</h2>
-      <p class="sub">任意：相手の名前と人物像を入れると、AIが候補を出すよ</p>
+      <h1>誰に送る？<span class="badge-required">必須</span></h1>
+      <p class="sub">まずは相手のことを教えてね</p>
       <input type="text" id="persona-name" placeholder="相手の名前（例：さくらちゃん）" aria-label="相手の名前" />
-      <textarea id="persona-description" placeholder="どんな人か（例：K-POP好き、泣けるアニメにハマってる）" rows="2" style="margin-top:8px;" aria-label="相手がどんな人か"></textarea>
-      <button class="btn btn-secondary" id="persona-suggest-btn" type="button" style="margin-top:10px;">AIに提案してもらう</button>
-      <p class="loading hidden" id="persona-suggest-loading">考え中...</p>
-      <div class="persona-results hidden" id="persona-suggest-results"></div>
     </div>
     <div class="card">
-      <h2>YouTubeの視聴傾向からAIに提案してもらう</h2>
-      <p class="sub">任意：YouTubeと連携すると、いいねした動画の傾向からAIが候補を出すよ。上の「相手に合わせて」欄に入力があれば、実際にあなたが好きなものの中からその人に合いそうなものを優先して選ぶよ</p>
-      <button class="btn btn-secondary" id="youtube-suggest-btn" type="button">YouTubeと連携する</button>
-      <p class="loading hidden" id="youtube-suggest-loading">YouTubeを確認中...</p>
-      <div class="venn-diagram hidden" id="youtube-venn"></div>
-      <div class="persona-results hidden" id="youtube-suggest-results"></div>
+      <h2>相手はどんな人？</h2>
+      <p class="sub">任意：自由に書いてね（例：邦楽好き、映画はあまり見ない）</p>
+      <textarea id="persona-description" placeholder="どんな人か" rows="3" aria-label="相手がどんな人か"></textarea>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn btn-primary" id="step1-next">次へ</button>
+    </div>
+  </section>
+
+  <!-- Step 2: YouTube連携 -->
+  <section class="step" data-step="2">
+    <div class="card">
+      <h1>YouTubeと連携する？</h1>
+      <p class="sub">あなたの視聴傾向と相手の情報を掛け合わせて、AIが候補を選ぶよ</p>
+      <button class="btn btn-primary" id="youtube-connect-btn" type="button">YouTubeと連携する</button>
+      <p class="loading hidden" id="youtube-connect-loading">確認中...</p>
+      <button class="btn-text" id="youtube-skip-btn" type="button">連携しない場合はスキップ</button>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" data-back>戻る</button>
+    </div>
+  </section>
+
+  <!-- Step 3: 送るコンテンツを選ぶ -->
+  <section class="step" data-step="3">
+    <div class="card">
+      <h1>送るコンテンツを選ぶ<span class="badge-required">必須</span></h1>
+      <p class="sub">候補から選ぶか、自分で入力してね</p>
+      <div class="venn-diagram hidden" id="step3-venn"></div>
+      <div class="persona-results hidden" id="step3-candidates"></div>
     </div>
     <div class="card">
-      <h2>あなたの名前</h2>
-      <p class="sub">受け取った相手の画面に表示されます</p>
-      <input type="text" id="sender-name" placeholder="例：たろう" aria-label="あなたの名前" />
+      <h2>自分で入力する</h2>
+      <div class="chip-group" id="content-type-group"></div>
+      <input type="text" id="content-title" placeholder="例：君の名は。" aria-label="タイトル" style="margin-top:10px;" />
     </div>
-    <div class="card">
-      <h2>送る相手（メモ用）</h2>
-      <p class="sub">任意：誰に送ったか自分が後で分かるように。相手には表示されません</p>
-      <input type="text" id="recipient-memo" placeholder="例：さくらちゃん" aria-label="送る相手のメモ" />
+    <div class="nav-buttons">
+      <button class="btn btn-secondary" data-back>戻る</button>
+      <button class="btn btn-primary" id="step3-next">次へ</button>
     </div>
+  </section>
+
+  <!-- Step 4: メッセージ設定 -->
+  <section class="step" data-step="4">
     <div class="card">
       <h2>ここが好き<span class="badge-required">必須</span></h2>
       <p class="sub">当てはまるものを選んでね（複数選択OK）</p>
@@ -65,18 +81,29 @@
       <div class="chip-group" id="disclosure-group"></div>
     </div>
     <div class="card">
+      <h2>LINEでよく話す相手？<span class="badge-required">必須</span></h2>
+      <p class="sub">初めてに近いと分かると、受け取り画面にResonateの説明を追加するよ</p>
+      <div class="chip-group" id="relationship-group"></div>
+    </div>
+    <div class="card">
+      <h2>あなたの名前</h2>
+      <p class="sub">受け取った相手の画面に表示されます</p>
+      <input type="text" id="sender-name" placeholder="例：たろう" aria-label="あなたの名前" />
+    </div>
+    <div class="card">
       <h2>LINEのやり取りスクショ（任意）</h2>
       <p class="sub">相手とのいつものトーンに合わせたメッセージを作るよ</p>
       <input type="file" id="screenshot-input" accept="image/*" aria-label="LINEのやり取りスクショ" />
       <img id="screenshot-preview" class="candidate-thumbnail hidden" alt="選択したスクリーンショットのプレビュー" style="margin-top:10px;" />
     </div>
     <div class="nav-buttons">
+      <button class="btn btn-secondary" data-back>戻る</button>
       <button class="btn btn-primary" id="generate-btn">メッセージを作る</button>
     </div>
   </section>
 
-  <!-- Step 2: メッセージプレビュー -->
-  <section class="step" data-step="2">
+  <!-- Step 5: 送信 -->
+  <section class="step" data-step="5">
     <div class="card" id="generating-card">
       <p class="loading">メッセージを生成中...</p>
     </div>
@@ -98,19 +125,15 @@
     <div class="nav-buttons hidden" id="other-share-nav">
       <button class="btn btn-secondary" id="other-share-btn">他のアプリでシェア（Instagram・TikTokなど）</button>
     </div>
-  </section>
-
-  <!-- Step 3: 送信完了 -->
-  <section class="step" data-step="3">
-    <div class="card">
+    <div class="card hidden" id="done-card">
       <h1>送信リンクができたよ</h1>
       <p class="sub">LINEアプリが開かなかった場合はこちらのリンクをコピーして送ってね</p>
       <input type="text" id="share-url" readonly aria-label="共有リンク" />
     </div>
-    <div class="nav-buttons">
+    <div class="nav-buttons hidden" id="done-nav">
       <button class="btn btn-secondary" id="copy-link-btn">リンクをコピー</button>
     </div>
-    <div class="nav-buttons">
+    <div class="nav-buttons hidden" id="done-nav-2">
       <a class="btn btn-primary" href="mypage.html" style="text-decoration:none;">マイページで反応を見る</a>
     </div>
   </section>

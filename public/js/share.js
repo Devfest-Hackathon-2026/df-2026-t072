@@ -77,6 +77,11 @@ async function init() {
   }
 
   const share = shareSnap.data();
+
+  if (share.relationshipStage === "new") {
+    document.getElementById("about-card").classList.remove("hidden");
+  }
+
   document.getElementById("from-label").textContent = `${share.senderName || "だれか"} から`;
   document.getElementById("content-title").textContent = share.contentTitle;
   document.getElementById("content-type-label").textContent = contentTypeLabel(share.contentType);
