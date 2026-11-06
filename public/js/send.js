@@ -352,7 +352,7 @@ function init() {
     document.getElementById("share-url").value = shareUrl;
 
     const lineText = `${state.messageOuter}\n${shareUrl}`;
-    const lineUrl = `https://line.me/R/msg/text/?text=${encodeURIComponent(lineText)}`;
+    const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`;
     window.open(lineUrl, "_blank", "noopener,noreferrer");
 
     goToStep(5);
