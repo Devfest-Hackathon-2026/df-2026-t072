@@ -241,7 +241,9 @@ function setupYoutubeSuggest() {
         try {
           const suggestFromYoutube = httpsCallable(functions, "suggestFromYoutube");
           const result = await suggestFromYoutube({ accessToken: response.access_token });
-          renderCandidates(result.data.candidates || [], "youtube-suggest-results");
+          const sourceLabel = result.data.source === "likes" ? "YouTubeでいいねしてた動画" : "登録チャンネル";
+          const candidates = (result.data.candidates || []).map((c) => ({ ...c, reason: sourceLabel }));
+          renderCandidates(candidates, "youtube-suggest-results");
         } catch (err) {
           console.error("suggestFromYoutube failed", err);
           alert("提案の生成に失敗しました。もう一度試してね");

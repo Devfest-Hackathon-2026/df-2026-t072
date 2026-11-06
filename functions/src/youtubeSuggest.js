@@ -43,23 +43,37 @@ async function fetchSubscriptionChannelTitles(accessToken) {
   return (subsData.items || []).map((i) => i.snippet.title).filter(Boolean);
 }
 
-function buildPrompt(titles, source) {
-  const label = source === "likes" ? "いいねした動画のタイトル" : "チャンネル登録しているチャンネル名";
+function buildClassifyPrompt(titles) {
   return `
-あなたは、友達に「好きなエンタメ」をさりげなく共有するのを手伝うアシスタントです。
-以下はある人のYouTubeの${label}です。この傾向から、その人が好きそうなエンタメコンテンツを3〜5個提案してください。
-YouTube自体の動画タイトルをそのまま提案するのではなく、その興味の傾向から推測される映画・アニメ・音楽・ゲームなどの具体的な作品名を提案してください。
+以下はYouTubeの動画またはチャンネルのタイトル一覧です。それぞれ最も近いジャンルに分類してください。
+新しいタイトルを考えたり、内容を推測して別の作品名に言い換えたりしないでください。あくまで分類だけを行ってください。
 
-${label}:
-${titles.map((t) => `- ${t}`).join("\n")}
+タイトル一覧:
+${titles.map((t, i) => `${i}: ${t}`).join("\n")}
 
-各候補について以下を含めてください:
-- contentType: 次のいずれか1つ（${VALID_GENRES.join(", ")}）
-- contentTitle: 具体的なコンテンツ名（実在するもの）
-- reason: なぜこの人に合いそうか、一言（20〜40文字程度）
+ジャンルの選択肢: ${VALID_GENRES.join(", ")}
+判断がつかない場合は "youtube" にしてください。
 
-出力形式: {"candidates": [{"contentType": "...", "contentTitle": "...", "reason": "..."}]}
+出力形式: {"results": [{"index": 0, "contentType": "..."}, ...]}
 `.trim();
+}
+
+async function classifyGenres(titles) {
+  const prompt = buildClassifyPrompt(titles);
+  const { results } = await generateJson(prompt);
+  const genreByIndex = new Map(
+    (results || [])
+      .filter((r) => r && Number.isInteger(r.index))
+      .map((r) => [r.index, r.contentType])
+  );
+
+  return titles.map((title, i) => {
+    const contentType = genreByIndex.get(i);
+    return {
+      contentType: VALID_GENRES.includes(contentType) ? contentType : "youtube",
+      contentTitle: title
+    };
+  });
 }
 
 exports.suggestFromYoutube = onCall({ region: "asia-northeast1" }, async (request) => {
@@ -81,16 +95,14 @@ exports.suggestFromYoutube = onCall({ region: "asia-northeast1" }, async (reques
     throw new HttpsError("not-found", "YouTubeの視聴データが見つかりませんでした");
   }
 
-  const prompt = buildPrompt(titles, source);
+  const topTitles = titles.slice(0, 5);
 
   try {
-    const { candidates } = await generateJson(prompt);
-    const filtered = (candidates || [])
-      .filter((c) => c && c.contentTitle && VALID_GENRES.includes(c.contentType))
-      .slice(0, 5);
-    return { candidates: filtered, source };
+    const candidates = await classifyGenres(topTitles);
+    return { candidates, source };
   } catch (err) {
-    console.error("suggestFromYoutube failed", err);
-    throw new HttpsError("internal", "提案の生成に失敗しました");
+    console.error("suggestFromYoutube classify failed", err);
+    const candidates = topTitles.map((title) => ({ contentType: "youtube", contentTitle: title }));
+    return { candidates, source };
   }
 });
