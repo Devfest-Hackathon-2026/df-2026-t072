@@ -10,6 +10,7 @@
 <div class="app">
   <header class="app-header">
     <span class="logo">Resonate</span>
+    <a class="header-nav-link" href="mypage.html">マイページ</a>
   </header>
 
   <!-- Step 1: コンテンツ選択 -->
@@ -43,6 +44,11 @@
       <h2>あなたの名前</h2>
       <p class="sub">受け取った相手の画面に表示されます</p>
       <input type="text" id="sender-name" placeholder="例：たろう" />
+    </div>
+    <div class="card">
+      <h2>送る相手（メモ用）</h2>
+      <p class="sub">任意：誰に送ったか自分が後で分かるように。相手には表示されません</p>
+      <input type="text" id="recipient-memo" placeholder="例：さくらちゃん" />
     </div>
     <div class="nav-buttons">
       <button class="btn btn-primary" id="step1-next">次へ</button>

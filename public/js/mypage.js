@@ -36,10 +36,26 @@ async function init() {
     const item = document.createElement("a");
     item.className = "share-item";
     item.href = `status.html?id=${docSnap.id}`;
-    item.innerHTML = `
-      <span>${share.contentTitle}</span>
-      <span class="badge">${contentTypeLabel(share.contentType)}</span>
-    `;
+
+    const mainEl = document.createElement("span");
+    mainEl.className = "share-item-main";
+
+    const titleEl = document.createElement("span");
+    titleEl.textContent = share.contentTitle;
+    mainEl.appendChild(titleEl);
+
+    if (share.recipientMemo) {
+      const recipientEl = document.createElement("span");
+      recipientEl.className = "share-item-recipient";
+      recipientEl.textContent = `→ ${share.recipientMemo}`;
+      mainEl.appendChild(recipientEl);
+    }
+
+    const badgeEl = document.createElement("span");
+    badgeEl.className = "badge";
+    badgeEl.textContent = contentTypeLabel(share.contentType);
+
+    item.append(mainEl, badgeEl);
     listEl.appendChild(item);
   });
 }

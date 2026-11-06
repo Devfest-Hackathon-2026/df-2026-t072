@@ -13,6 +13,7 @@ const state = {
   contentType: null,
   contentTitle: "",
   senderName: "",
+  recipientMemo: "",
   tags: [],
   disclosureLevel: null,
   screenshotBase64: null,
@@ -118,7 +119,8 @@ async function createShare() {
     scoreTriggerType: state.disclosureLevel === "deep" ? "cumulative" : "instant",
     createdAt: serverTimestamp(),
     senderId: currentUser.uid,
-    senderName: state.senderName || "だれか"
+    senderName: state.senderName || "だれか",
+    recipientMemo: state.recipientMemo
   });
 
   return `${location.origin}/share/${state.shareId}`;
@@ -286,6 +288,7 @@ function init() {
   document.getElementById("step1-next").addEventListener("click", () => {
     state.contentTitle = document.getElementById("content-title").value.trim();
     state.senderName = document.getElementById("sender-name").value.trim();
+    state.recipientMemo = document.getElementById("recipient-memo").value.trim();
     if (!state.contentType || !state.contentTitle) {
       alert("コンテンツの種類とタイトルを入力してね");
       return;

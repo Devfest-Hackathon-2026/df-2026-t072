@@ -32,6 +32,7 @@ body {
 header.app-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   padding: 8px 0 20px;
 }
@@ -40,6 +41,12 @@ header.app-header .logo {
   font-weight: 700;
   font-size: 20px;
   color: var(--color-primary-dark);
+}
+
+.header-nav-link {
+  font-size: 13px;
+  color: var(--color-text-sub);
+  text-decoration: none;
 }
 
 .card {
@@ -211,6 +218,16 @@ textarea {
   border-bottom: 1px solid var(--color-border);
   text-decoration: none;
   color: inherit;
+}
+
+.share-item-main {
+  display: flex;
+  flex-direction: column;
+}
+
+.share-item-recipient {
+  font-size: 12px;
+  color: var(--color-text-sub);
 }
 
 .share-item:last-child {
