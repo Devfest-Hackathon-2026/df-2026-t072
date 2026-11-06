@@ -21,6 +21,10 @@ function renderPage({ shareId, title, description, imageUrl, sourceUrl }) {
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="${imageUrl ? "summary_large_image" : "summary"}" />
 ${imageUrl ? `<meta property="og:image" content="${escapeHtml(imageUrl)}" />` : ""}
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#378adb" />
+<link rel="icon" href="/icons/icon-192.png" />
+<link rel="apple-touch-icon" href="/icons/icon-192.png" />
 <link rel="stylesheet" href="/css/style.css" />
 <script>window.RESONATE_SHARE_ID = ${JSON.stringify(shareId)};</script>
 </head>
@@ -71,6 +75,7 @@ ${imageUrl ? `<meta property="og:image" content="${escapeHtml(imageUrl)}" />` : 
 </div>
 
 <script type="module" src="/js/share.js"></script>
+<script src="/js/register-sw.js"></script>
 </body>
 </html>`;
 }
