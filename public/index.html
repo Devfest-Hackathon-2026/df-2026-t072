@@ -105,7 +105,22 @@
   <!-- Step 5: 送信 -->
   <section class="step" data-step="5">
     <div class="card" id="generating-card">
-      <p class="loading">メッセージを生成中...</p>
+      <div class="house-loading" id="house-loading">
+        <svg class="house-svg" viewBox="0 0 200 170" role="img" aria-label="メッセージを生成中のアニメーション">
+          <rect class="house-foundation" x="50" y="136" width="100" height="14" rx="2" />
+          <g class="house-walls">
+            <rect class="house-wall" x="58" y="90" width="84" height="46" />
+            <rect class="house-door" x="92" y="110" width="16" height="26" rx="2" />
+          </g>
+          <rect class="house-window" x="68" y="100" width="18" height="18" rx="2" />
+          <polygon class="house-roof" points="48,90 152,90 100,40" />
+          <text class="house-float f1" x="40" y="55">♪</text>
+          <text class="house-float f2" x="160" y="68">❤</text>
+          <text class="house-float f3" x="100" y="26">♪</text>
+          <text class="house-float f4" x="64" y="40">❤</text>
+        </svg>
+      </div>
+      <p class="house-loading-text" id="house-loading-text">あなたの好みを分析中…</p>
     </div>
     <div class="card hidden" id="preview-card">
       <h2>LINEで送るメッセージ</h2>

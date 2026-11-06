@@ -109,6 +109,46 @@ function readFileAsBase64(file) {
   });
 }
 
+const LOADING_PHRASES = [
+  "あなたの好みを分析中…",
+  "相手のことを考えています…",
+  "2人の共鳴ポイントを探しています…",
+  "メッセージを組み立てています…",
+  "もうすぐできあがります…"
+];
+
+const MIN_LOADING_MS = 3000;
+const PHRASE_INTERVAL_MS = 650;
+const PHRASE_FADE_MS = 250;
+const FINISH_FLASH_MS = 650;
+
+function startLoadingTextCycle() {
+  const textEl = document.getElementById("house-loading-text");
+  textEl.classList.remove("fade-out", "pulsing");
+  textEl.textContent = LOADING_PHRASES[0];
+
+  let index = 0;
+  const timer = setInterval(() => {
+    if (index >= LOADING_PHRASES.length - 1) {
+      clearInterval(timer);
+      textEl.classList.add("pulsing");
+      return;
+    }
+    textEl.classList.add("fade-out");
+    setTimeout(() => {
+      index += 1;
+      textEl.textContent = LOADING_PHRASES[index];
+      textEl.classList.remove("fade-out");
+    }, PHRASE_FADE_MS);
+  }, PHRASE_INTERVAL_MS);
+
+  return () => clearInterval(timer);
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function generateMessages() {
   state.shareId = null;
 
@@ -116,6 +156,7 @@ async function generateMessages() {
   const previewCard = document.getElementById("preview-card");
   const previewInnerCard = document.getElementById("preview-inner-card");
   const nav = document.getElementById("preview-nav");
+  const houseSvg = document.querySelector("#house-loading .house-svg");
 
   document.getElementById("done-card").classList.add("hidden");
   document.getElementById("done-nav").classList.add("hidden");
@@ -126,41 +167,57 @@ async function generateMessages() {
   previewInnerCard.classList.add("hidden");
   nav.classList.add("hidden");
 
-  const generateMessage = httpsCallable(functions, "generateMessage");
-  const result = await generateMessage({
-    contentType: state.contentType,
-    contentTitle: state.contentTitle,
-    tags: state.tags,
-    disclosureLevel: state.disclosureLevel,
-    screenshotBase64: state.screenshotBase64,
-    knownImageUrl: state.knownImageUrl,
-    personName: state.personName || undefined,
-    personDescription: state.personDescription || undefined,
-    relationshipStage: state.relationshipStage
-  });
+  houseSvg.classList.remove("complete");
+  const stopTextCycle = startLoadingTextCycle();
 
-  state.messageOuter = result.data.messageOuter;
-  state.messageInner = result.data.messageInner;
-  state.imageUrl = result.data.imageUrl || null;
+  try {
+    const generateMessage = httpsCallable(functions, "generateMessage");
+    const resultPromise = generateMessage({
+      contentType: state.contentType,
+      contentTitle: state.contentTitle,
+      tags: state.tags,
+      disclosureLevel: state.disclosureLevel,
+      screenshotBase64: state.screenshotBase64,
+      knownImageUrl: state.knownImageUrl,
+      personName: state.personName || undefined,
+      personDescription: state.personDescription || undefined,
+      relationshipStage: state.relationshipStage
+    });
 
-  document.getElementById("message-outer").value = state.messageOuter;
-  document.getElementById("message-inner").value = state.messageInner;
-  updateCharCount("message-outer", "message-outer-count");
-  updateCharCount("message-inner", "message-inner-count");
+    const [result] = await Promise.all([resultPromise, wait(MIN_LOADING_MS)]);
 
-  const previewImage = document.getElementById("preview-image");
-  if (state.imageUrl) {
-    previewImage.src = state.imageUrl;
-    previewImage.classList.remove("hidden");
-  } else {
-    previewImage.classList.add("hidden");
+    stopTextCycle();
+    houseSvg.classList.add("complete");
+    await wait(FINISH_FLASH_MS);
+
+    state.messageOuter = result.data.messageOuter;
+    state.messageInner = result.data.messageInner;
+    state.imageUrl = result.data.imageUrl || null;
+
+    document.getElementById("message-outer").value = state.messageOuter;
+    document.getElementById("message-inner").value = state.messageInner;
+    updateCharCount("message-outer", "message-outer-count");
+    updateCharCount("message-inner", "message-inner-count");
+
+    const previewImage = document.getElementById("preview-image");
+    if (state.imageUrl) {
+      previewImage.src = state.imageUrl;
+      previewImage.classList.remove("hidden");
+    } else {
+      previewImage.classList.add("hidden");
+    }
+
+    generatingCard.classList.add("hidden");
+    previewCard.classList.remove("hidden");
+    previewInnerCard.classList.remove("hidden");
+    nav.classList.remove("hidden");
+    document.getElementById("other-share-nav").classList.toggle("hidden", typeof navigator.share !== "function");
+  } catch (err) {
+    stopTextCycle();
+    console.error("generateMessage failed", err);
+    alert("メッセージの生成に失敗しました。もう一度試してね");
+    goToStep(4);
   }
-
-  generatingCard.classList.add("hidden");
-  previewCard.classList.remove("hidden");
-  previewInnerCard.classList.remove("hidden");
-  nav.classList.remove("hidden");
-  document.getElementById("other-share-nav").classList.toggle("hidden", typeof navigator.share !== "function");
 }
 
 async function ensureShareCreated() {
