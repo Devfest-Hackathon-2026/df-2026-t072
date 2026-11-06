@@ -262,11 +262,21 @@ function setupYoutubeSuggest() {
         results.classList.add("hidden");
         loading.classList.remove("hidden");
 
+        const personName = document.getElementById("persona-name").value.trim();
+        const personDescription = document.getElementById("persona-description").value.trim();
+
         try {
           const suggestFromYoutube = httpsCallable(functions, "suggestFromYoutube");
-          const result = await suggestFromYoutube({ accessToken: response.access_token });
+          const result = await suggestFromYoutube({
+            accessToken: response.access_token,
+            personName: personName || undefined,
+            personDescription: personDescription || undefined
+          });
           const sourceLabel = result.data.source === "likes" ? "YouTubeでいいねしてた動画" : "登録チャンネル";
-          const candidates = (result.data.candidates || []).map((c) => ({ ...c, reason: sourceLabel }));
+          const reason = result.data.matchedPersona
+            ? `${personName}に合いそう（${sourceLabel}から）`
+            : sourceLabel;
+          const candidates = (result.data.candidates || []).map((c) => ({ ...c, reason }));
           renderCandidates(candidates, "youtube-suggest-results");
         } catch (err) {
           console.error("suggestFromYoutube failed", err);

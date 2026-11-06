@@ -80,6 +80,32 @@ function pickDiverseByGenre(candidates, limit) {
   return [...primary, ...rest].slice(0, limit);
 }
 
+function buildOverlapPrompt(items, personName, personDescription) {
+  return `
+以下は、ある人が実際にYouTubeで「いいね」した動画、または登録チャンネルの一覧です。
+別に、共有相手の人物像があります。一覧の中から、その人物像に合いそうなものを最大5件、合いそうな順に選んでください。
+
+一覧に無いタイトルを考えたり、内容を言い換えたりしないでください。あくまで一覧の中から選ぶだけにしてください。
+合いそうなものが無ければ、無理に5件選ばず、少なくても構いません。
+
+一覧:
+${items.map((item, i) => `${i}: [${item.contentType}] ${item.contentTitle}`).join("\n")}
+
+共有相手の名前: ${personName}
+共有相手がどんな人か: ${personDescription}
+
+出力形式: {"selectedIndexes": [2, 0, 5]}
+`.trim();
+}
+
+async function selectForPersona(items, personName, personDescription) {
+  const prompt = buildOverlapPrompt(items, personName, personDescription);
+  const { selectedIndexes } = await generateJson(prompt);
+  const valid = (selectedIndexes || []).filter((i) => Number.isInteger(i) && items[i]);
+  const selected = valid.map((i) => items[i]).slice(0, 5);
+  return selected.length > 0 ? selected : pickDiverseByGenre(items, 5);
+}
+
 function buildClassifyPrompt(titles) {
   return `
 以下はYouTubeの動画またはチャンネルのタイトル一覧です。それぞれ最も近いジャンルに分類してください。
@@ -116,7 +142,8 @@ async function classifyGenres(items) {
 }
 
 exports.suggestFromYoutube = onCall({ region: "asia-northeast1" }, async (request) => {
-  const { accessToken } = request.data;
+  const { accessToken, personName, personDescription } = request.data;
+  const hasPersona = Boolean(personName && personDescription);
 
   if (!accessToken) {
     throw new HttpsError("invalid-argument", "accessToken は必須です");
@@ -136,8 +163,10 @@ exports.suggestFromYoutube = onCall({ region: "asia-northeast1" }, async (reques
 
   try {
     const classified = await classifyGenres(items);
-    const candidates = pickDiverseByGenre(classified, 5);
-    return { candidates, source };
+    const candidates = hasPersona
+      ? await selectForPersona(classified, personName, personDescription)
+      : pickDiverseByGenre(classified, 5);
+    return { candidates, source, matchedPersona: hasPersona };
   } catch (err) {
     console.error("suggestFromYoutube classify failed", err);
     const candidates = items.slice(0, 5).map((item) => ({

@@ -93,6 +93,7 @@ firebase deploy
 10. YouTubeの視聴傾向からのAI提案 — `youtubeSuggest.js` / `send.js` の `setupYoutubeSuggest`（本番デプロイ済み）
 11. YouTube由来の候補はサムネイル・元動画リンクをそのまま利用 — `suggestFromYoutube`がthumbnailUrl/sourceUrlを返し、`generateMessage`のGoogle検索をスキップして共有カード・受け取り画面の「元のコンテンツを見る」リンクに反映
 12. 送る側の入力画面を1画面に集約 — プレゼン等で素早く生成まで行けるよう、旧Step1〜3（コンテンツ選択・タグ・温度感）を1つの`<section data-step="1">`にまとめ、「メッセージを作る」ボタン1つで生成に進む構成に変更（プレビュー画面=Step2、送信完了=Step3）
+13. YouTube×ペルソナの掛け合わせ提案（ベン図） — `suggestFromYoutube`に`personName`/`personDescription`を渡すと、実際にいいねした動画・登録チャンネルの中から、その人物像に合いそうなものだけをGeminiが選んで返す（新規の作品名は生成しない）。「相手に合わせて」欄が空ならジャンル分散選出のまま
 
 **未実装（ピッチで語る未来機能）**
 - 累積型スコア判定の精度向上
