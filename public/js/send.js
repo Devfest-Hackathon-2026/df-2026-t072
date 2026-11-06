@@ -20,7 +20,9 @@ const state = {
   shareId: null,
   messageOuter: "",
   messageInner: "",
-  imageUrl: null
+  imageUrl: null,
+  knownImageUrl: null,
+  sourceUrl: null
 };
 
 let currentUser = null;
@@ -88,7 +90,8 @@ async function generateMessages() {
     contentTitle: state.contentTitle,
     tags: state.tags,
     disclosureLevel: state.disclosureLevel,
-    screenshotBase64: state.screenshotBase64
+    screenshotBase64: state.screenshotBase64,
+    knownImageUrl: state.knownImageUrl
   });
 
   state.messageOuter = result.data.messageOuter;
@@ -97,6 +100,14 @@ async function generateMessages() {
 
   document.getElementById("message-outer").value = state.messageOuter;
   document.getElementById("message-inner").value = state.messageInner;
+
+  const previewImage = document.getElementById("preview-image");
+  if (state.imageUrl) {
+    previewImage.src = state.imageUrl;
+    previewImage.classList.remove("hidden");
+  } else {
+    previewImage.classList.add("hidden");
+  }
 
   generatingCard.classList.add("hidden");
   previewCard.classList.remove("hidden");
@@ -116,6 +127,7 @@ async function createShare() {
     messageOuter: state.messageOuter,
     messageInner: state.messageInner,
     imageUrl: state.imageUrl,
+    sourceUrl: state.sourceUrl,
     scoreTriggerType: state.disclosureLevel === "deep" ? "cumulative" : "instant",
     createdAt: serverTimestamp(),
     senderId: currentUser.uid,
@@ -144,10 +156,12 @@ function renderTagGroup(genre) {
   );
 }
 
-function selectGenreAndTitle(contentType, title) {
-  const chip = document.querySelector(`#content-type-group .chip[data-key="${contentType}"]`);
+function selectCandidate(c) {
+  const chip = document.querySelector(`#content-type-group .chip[data-key="${c.contentType}"]`);
   if (chip) chip.click();
-  document.getElementById("content-title").value = title;
+  document.getElementById("content-title").value = c.contentTitle;
+  state.knownImageUrl = c.thumbnailUrl || null;
+  state.sourceUrl = c.sourceUrl || null;
 }
 
 function renderCandidates(candidates, containerId) {
@@ -167,6 +181,14 @@ function renderCandidates(candidates, containerId) {
     btn.type = "button";
     btn.className = "persona-candidate";
 
+    if (c.thumbnailUrl) {
+      const thumbEl = document.createElement("img");
+      thumbEl.className = "candidate-thumbnail";
+      thumbEl.src = c.thumbnailUrl;
+      thumbEl.alt = "";
+      btn.appendChild(thumbEl);
+    }
+
     const genreEl = document.createElement("span");
     genreEl.className = "candidate-genre";
     genreEl.textContent = genreLabel;
@@ -181,7 +203,7 @@ function renderCandidates(candidates, containerId) {
 
     btn.append(genreEl, titleEl, reasonEl);
     btn.addEventListener("click", () => {
-      selectGenreAndTitle(c.contentType, c.contentTitle);
+      selectCandidate(c);
       container.classList.add("hidden");
     });
     container.appendChild(btn);
@@ -284,6 +306,11 @@ function init() {
   setupNav();
   setupPersonaSuggest();
   setupYoutubeSuggest();
+
+  document.getElementById("content-title").addEventListener("input", () => {
+    state.knownImageUrl = null;
+    state.sourceUrl = null;
+  });
 
   document.getElementById("step1-next").addEventListener("click", () => {
     state.contentTitle = document.getElementById("content-title").value.trim();

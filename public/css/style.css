@@ -283,7 +283,17 @@ textarea {
   color: var(--color-text-sub);
 }
 
-.content-image {
+.candidate-thumbnail {
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  display: block;
+  object-fit: cover;
+  max-height: 140px;
+}
+
+.content-image,
+.preview-image {
   width: 100%;
   border-radius: 12px;
   margin-bottom: 12px;

@@ -9,7 +9,7 @@ function escapeHtml(str = "") {
     .replace(/"/g, "&quot;");
 }
 
-function renderPage({ shareId, title, description, imageUrl }) {
+function renderPage({ shareId, title, description, imageUrl, sourceUrl }) {
   return `<!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -40,6 +40,7 @@ ${imageUrl ? `<meta property="og:image" content="${escapeHtml(imageUrl)}" />` : 
     <h1 id="content-title"></h1>
     <p id="content-type-label" class="sub"></p>
     <p id="message-inner"></p>
+    <a id="source-link" class="btn btn-secondary hidden" href="${sourceUrl ? escapeHtml(sourceUrl) : "#"}" target="_blank" rel="noopener" style="text-decoration:none; display:block; text-align:center;">元のコンテンツを見る</a>
   </div>
 
   <div id="reaction-card" class="card hidden">
@@ -97,5 +98,13 @@ exports.ogp = onRequest({ region: "asia-northeast1" }, async (req, res) => {
   const description = share.messageOuter || "Resonateで好きなものが届きました";
 
   res.set("Cache-Control", "public, max-age=60");
-  res.status(200).send(renderPage({ shareId, title, description, imageUrl: share.imageUrl || null }));
+  res.status(200).send(
+    renderPage({
+      shareId,
+      title,
+      description,
+      imageUrl: share.imageUrl || null,
+      sourceUrl: share.sourceUrl || null
+    })
+  );
 });

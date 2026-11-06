@@ -89,8 +89,9 @@ firebase deploy
 6. LINEスクショ解析によるトーンチューニング — `generateMessage.js` 内 `extractToneHint`
 7. AIカバーメッセージ — `generateAiCover`
 8. ネクストアクション提案 — `suggestNextAction`
-9. Google検索連携の画像付き共有カード — `imageSearch.js`（コードのみ、Secret未設定のためデプロイ保留）
-10. YouTubeの視聴傾向からのAI提案 — `youtubeSuggest.js` / `send.js` の `setupYoutubeSuggest`（コードのみ、OAuthクライアントID未設定）
+9. Google検索連携の画像付き共有カード — `imageSearch.js`（本番デプロイ済み）
+10. YouTubeの視聴傾向からのAI提案 — `youtubeSuggest.js` / `send.js` の `setupYoutubeSuggest`（本番デプロイ済み）
+11. YouTube由来の候補はサムネイル・元動画リンクをそのまま利用 — `suggestFromYoutube`がthumbnailUrl/sourceUrlを返し、`generateMessage`のGoogle検索をスキップして共有カード・受け取り画面の「元のコンテンツを見る」リンクに反映
 
 **未実装（ピッチで語る未来機能）**
 - 累積型スコア判定の精度向上

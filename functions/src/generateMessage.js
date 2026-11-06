@@ -56,7 +56,7 @@ async function extractToneHint(screenshotBase64) {
 exports.generateMessage = onCall(
   { region: "asia-northeast1", secrets: [CUSTOM_SEARCH_API_KEY, CUSTOM_SEARCH_CSE_ID] },
   async (request) => {
-    const { contentType, contentTitle, tags, disclosureLevel, screenshotBase64 } = request.data;
+    const { contentType, contentTitle, tags, disclosureLevel, screenshotBase64, knownImageUrl } = request.data;
 
     if (!contentType || !contentTitle || !disclosureLevel) {
       throw new HttpsError("invalid-argument", "contentType, contentTitle, disclosureLevel は必須です");
@@ -74,8 +74,11 @@ exports.generateMessage = onCall(
       throw new HttpsError("internal", "メッセージの生成に失敗しました");
     }
 
-    const typeLabel = CONTENT_TYPE_LABELS[contentType] || contentType;
-    const imageUrl = await fetchThumbnail(`${contentTitle} ${typeLabel}`);
+    let imageUrl = knownImageUrl || null;
+    if (!imageUrl) {
+      const typeLabel = CONTENT_TYPE_LABELS[contentType] || contentType;
+      imageUrl = await fetchThumbnail(`${contentTitle} ${typeLabel}`);
+    }
 
     return { messageOuter, messageInner, imageUrl };
   }

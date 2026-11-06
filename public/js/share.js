@@ -88,6 +88,12 @@ async function init() {
     img.classList.remove("hidden");
   }
 
+  if (share.sourceUrl) {
+    const link = document.getElementById("source-link");
+    link.href = share.sourceUrl;
+    link.classList.remove("hidden");
+  }
+
   showCard("content-card");
   document.getElementById("reaction-card").classList.remove("hidden");
 

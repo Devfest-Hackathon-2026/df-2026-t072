@@ -23,7 +23,11 @@ async function callYoutubeApi(path, accessToken) {
   return res.json();
 }
 
-async function fetchLikedVideoTitles(accessToken) {
+function pickThumbnail(thumbnails) {
+  return thumbnails?.medium?.url || thumbnails?.default?.url || null;
+}
+
+async function fetchLikedVideoItems(accessToken) {
   const channelData = await callYoutubeApi("channels?part=contentDetails&mine=true", accessToken);
   const likesPlaylistId = channelData.items?.[0]?.contentDetails?.relatedPlaylists?.likes;
   if (!likesPlaylistId) return [];
@@ -32,15 +36,31 @@ async function fetchLikedVideoTitles(accessToken) {
     `playlistItems?part=snippet&maxResults=50&playlistId=${likesPlaylistId}`,
     accessToken
   );
-  return (itemsData.items || []).map((i) => i.snippet.title).filter(Boolean);
+  return (itemsData.items || [])
+    .filter((i) => i.snippet?.title)
+    .map((i) => ({
+      title: i.snippet.title,
+      thumbnailUrl: pickThumbnail(i.snippet.thumbnails),
+      sourceUrl: i.snippet.resourceId?.videoId
+        ? `https://www.youtube.com/watch?v=${i.snippet.resourceId.videoId}`
+        : null
+    }));
 }
 
-async function fetchSubscriptionChannelTitles(accessToken) {
+async function fetchSubscriptionChannelItems(accessToken) {
   const subsData = await callYoutubeApi(
     "subscriptions?part=snippet&mine=true&maxResults=50",
     accessToken
   );
-  return (subsData.items || []).map((i) => i.snippet.title).filter(Boolean);
+  return (subsData.items || [])
+    .filter((i) => i.snippet?.title)
+    .map((i) => ({
+      title: i.snippet.title,
+      thumbnailUrl: pickThumbnail(i.snippet.thumbnails),
+      sourceUrl: i.snippet.resourceId?.channelId
+        ? `https://www.youtube.com/channel/${i.snippet.resourceId.channelId}`
+        : null
+    }));
 }
 
 function pickDiverseByGenre(candidates, limit) {
@@ -75,8 +95,8 @@ ${titles.map((t, i) => `${i}: ${t}`).join("\n")}
 `.trim();
 }
 
-async function classifyGenres(titles) {
-  const prompt = buildClassifyPrompt(titles);
+async function classifyGenres(items) {
+  const prompt = buildClassifyPrompt(items.map((i) => i.title));
   const { results } = await generateJson(prompt);
   const genreByIndex = new Map(
     (results || [])
@@ -84,11 +104,13 @@ async function classifyGenres(titles) {
       .map((r) => [r.index, r.contentType])
   );
 
-  return titles.map((title, i) => {
+  return items.map((item, i) => {
     const contentType = genreByIndex.get(i);
     return {
       contentType: VALID_GENRES.includes(contentType) ? contentType : "youtube",
-      contentTitle: title
+      contentTitle: item.title,
+      thumbnailUrl: item.thumbnailUrl,
+      sourceUrl: item.sourceUrl
     };
   });
 }
@@ -100,25 +122,30 @@ exports.suggestFromYoutube = onCall({ region: "asia-northeast1" }, async (reques
     throw new HttpsError("invalid-argument", "accessToken は必須です");
   }
 
-  let titles = await fetchLikedVideoTitles(accessToken);
+  let items = await fetchLikedVideoItems(accessToken);
   let source = "likes";
 
-  if (titles.length === 0) {
-    titles = await fetchSubscriptionChannelTitles(accessToken);
+  if (items.length === 0) {
+    items = await fetchSubscriptionChannelItems(accessToken);
     source = "subscriptions";
   }
 
-  if (titles.length === 0) {
+  if (items.length === 0) {
     throw new HttpsError("not-found", "YouTubeの視聴データが見つかりませんでした");
   }
 
   try {
-    const classified = await classifyGenres(titles);
+    const classified = await classifyGenres(items);
     const candidates = pickDiverseByGenre(classified, 5);
     return { candidates, source };
   } catch (err) {
     console.error("suggestFromYoutube classify failed", err);
-    const candidates = titles.slice(0, 5).map((title) => ({ contentType: "youtube", contentTitle: title }));
+    const candidates = items.slice(0, 5).map((item) => ({
+      contentType: "youtube",
+      contentTitle: item.title,
+      thumbnailUrl: item.thumbnailUrl,
+      sourceUrl: item.sourceUrl
+    }));
     return { candidates, source };
   }
 });
