@@ -94,15 +94,17 @@ ${items.map((item, i) => `${i}: [${item.contentType}] ${item.contentTitle}`).joi
 共有相手の名前: ${personName}
 共有相手がどんな人か: ${personDescription}
 
-出力形式: {"selectedIndexes": [2, 0, 5]}
+各候補について、「自分が実際に好きな理由（傾向）」と「相手の人物像」が、具体的にどう重なっているかが分かる理由を書いてください（20〜40文字程度）。
+
+出力形式: {"selections": [{"index": 2, "reason": "..."}, {"index": 0, "reason": "..."}]}
 `.trim();
 }
 
 async function selectForPersona(items, personName, personDescription) {
   const prompt = buildOverlapPrompt(items, personName, personDescription);
-  const { selectedIndexes } = await generateJson(prompt);
-  const valid = (selectedIndexes || []).filter((i) => Number.isInteger(i) && items[i]);
-  const selected = valid.map((i) => items[i]).slice(0, 5);
+  const { selections } = await generateJson(prompt);
+  const valid = (selections || []).filter((s) => s && Number.isInteger(s.index) && items[s.index]);
+  const selected = valid.slice(0, 5).map((s) => ({ ...items[s.index], reason: s.reason || "" }));
   return selected.length > 0 ? selected : pickDiverseByGenre(items, 5);
 }
 

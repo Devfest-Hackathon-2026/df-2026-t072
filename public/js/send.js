@@ -273,10 +273,10 @@ function setupYoutubeSuggest() {
             personDescription: personDescription || undefined
           });
           const sourceLabel = result.data.source === "likes" ? "YouTubeでいいねしてた動画" : "登録チャンネル";
-          const reason = result.data.matchedPersona
-            ? `${personName}に合いそう（${sourceLabel}から）`
-            : sourceLabel;
-          const candidates = (result.data.candidates || []).map((c) => ({ ...c, reason }));
+          const candidates = (result.data.candidates || []).map((c) => ({
+            ...c,
+            reason: result.data.matchedPersona ? c.reason || sourceLabel : sourceLabel
+          }));
           renderCandidates(candidates, "youtube-suggest-results");
         } catch (err) {
           console.error("suggestFromYoutube failed", err);
