@@ -156,7 +156,8 @@ async function generateMessages() {
   const previewCard = document.getElementById("preview-card");
   const previewInnerCard = document.getElementById("preview-inner-card");
   const nav = document.getElementById("preview-nav");
-  const houseSvg = document.querySelector("#house-loading .house-svg");
+  const houseLoading = document.getElementById("house-loading");
+  const houseSvg = houseLoading.querySelector(".house-svg");
 
   document.getElementById("done-card").classList.add("hidden");
   document.getElementById("done-nav").classList.add("hidden");
@@ -168,6 +169,7 @@ async function generateMessages() {
   nav.classList.add("hidden");
 
   houseSvg.classList.remove("complete");
+  houseLoading.classList.remove("complete");
   const stopTextCycle = startLoadingTextCycle();
 
   try {
@@ -188,6 +190,7 @@ async function generateMessages() {
 
     stopTextCycle();
     houseSvg.classList.add("complete");
+    houseLoading.classList.add("complete");
     await wait(FINISH_FLASH_MS);
 
     state.messageOuter = result.data.messageOuter;
