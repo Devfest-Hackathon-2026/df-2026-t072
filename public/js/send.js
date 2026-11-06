@@ -27,6 +27,23 @@ const state = {
 
 let currentUser = null;
 
+function updateCharCount(textareaId, countId) {
+  const value = document.getElementById(textareaId).value;
+  document.getElementById(countId).textContent = `${value.length}文字`;
+}
+
+function onClickOnce(button, handler) {
+  button.addEventListener("click", async () => {
+    if (button.disabled) return;
+    button.disabled = true;
+    try {
+      await handler();
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
+
 function renderChipGroup(container, items, getKey, getLabel, onToggle, multi) {
   container.innerHTML = "";
   items.forEach((item) => {
@@ -100,6 +117,8 @@ async function generateMessages() {
 
   document.getElementById("message-outer").value = state.messageOuter;
   document.getElementById("message-inner").value = state.messageInner;
+  updateCharCount("message-outer", "message-outer-count");
+  updateCharCount("message-inner", "message-inner-count");
 
   const previewImage = document.getElementById("preview-image");
   if (state.imageUrl) {
@@ -113,9 +132,14 @@ async function generateMessages() {
   previewCard.classList.remove("hidden");
   previewInnerCard.classList.remove("hidden");
   nav.classList.remove("hidden");
+  document.getElementById("other-share-nav").classList.toggle("hidden", typeof navigator.share !== "function");
 }
 
-async function createShare() {
+async function ensureShareCreated() {
+  if (state.shareId) {
+    return `${location.origin}/share/${state.shareId}`;
+  }
+
   const shareRef = doc(collection(db, "shares"));
   state.shareId = shareRef.id;
 
@@ -199,7 +223,7 @@ function renderVennDiagram(venn, containerId) {
   container.classList.remove("hidden");
 }
 
-function renderCandidates(candidates, containerId) {
+function renderCandidates(candidates, containerId, onClose) {
   const container = document.getElementById(containerId);
   container.innerHTML = "";
 
@@ -208,6 +232,16 @@ function renderCandidates(candidates, containerId) {
     alert("提案を作れなかったみたい。もう一度試してね");
     return;
   }
+
+  const closeBtn = document.createElement("button");
+  closeBtn.type = "button";
+  closeBtn.className = "candidates-close";
+  closeBtn.textContent = "閉じる ×";
+  closeBtn.addEventListener("click", () => {
+    container.classList.add("hidden");
+    if (onClose) onClose();
+  });
+  container.appendChild(closeBtn);
 
   candidates.forEach((c) => {
     const genreLabel = (CONTENT_TYPES.find((g) => g.value === c.contentType) || {}).label || c.contentType;
@@ -248,7 +282,8 @@ function renderCandidates(candidates, containerId) {
 }
 
 function setupPersonaSuggest() {
-  document.getElementById("persona-suggest-btn").addEventListener("click", async () => {
+  const btn = document.getElementById("persona-suggest-btn");
+  onClickOnce(btn, async () => {
     const personName = document.getElementById("persona-name").value.trim();
     const personDescription = document.getElementById("persona-description").value.trim();
     if (!personName || !personDescription) {
@@ -275,7 +310,11 @@ function setupPersonaSuggest() {
 }
 
 function setupYoutubeSuggest() {
-  document.getElementById("youtube-suggest-btn").addEventListener("click", () => {
+  const btn = document.getElementById("youtube-suggest-btn");
+
+  btn.addEventListener("click", () => {
+    if (btn.disabled) return;
+
     if (!window.google?.accounts?.oauth2) {
       alert("Googleログインの読み込みに失敗しました。ページを再読み込みしてね");
       return;
@@ -283,18 +322,24 @@ function setupYoutubeSuggest() {
 
     const loading = document.getElementById("youtube-suggest-loading");
     const results = document.getElementById("youtube-suggest-results");
+    const venn = document.getElementById("youtube-venn");
+
+    btn.disabled = true;
 
     const tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: YOUTUBE_CLIENT_ID,
       scope: "https://www.googleapis.com/auth/youtube.readonly",
+      error_callback: () => {
+        btn.disabled = false;
+      },
       callback: async (response) => {
         if (response.error) {
           console.error("youtube oauth failed", response);
           alert("YouTubeとの連携に失敗しました");
+          btn.disabled = false;
           return;
         }
 
-        const venn = document.getElementById("youtube-venn");
         results.classList.add("hidden");
         venn.classList.add("hidden");
         loading.classList.remove("hidden");
@@ -315,12 +360,13 @@ function setupYoutubeSuggest() {
             reason: result.data.matchedPersona ? c.reason || sourceLabel : sourceLabel
           }));
           renderVennDiagram(result.data.matchedPersona ? result.data.venn : null, "youtube-venn");
-          renderCandidates(candidates, "youtube-suggest-results");
+          renderCandidates(candidates, "youtube-suggest-results", () => venn.classList.add("hidden"));
         } catch (err) {
           console.error("suggestFromYoutube failed", err);
           alert("提案の生成に失敗しました。もう一度試してね");
         } finally {
           loading.classList.add("hidden");
+          btn.disabled = false;
         }
       }
     });
@@ -360,7 +406,25 @@ function init() {
     state.sourceUrl = null;
   });
 
-  document.getElementById("generate-btn").addEventListener("click", async () => {
+  document.getElementById("screenshot-input").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    const preview = document.getElementById("screenshot-preview");
+    if (file) {
+      preview.src = URL.createObjectURL(file);
+      preview.classList.remove("hidden");
+    } else {
+      preview.classList.add("hidden");
+    }
+  });
+
+  document.getElementById("message-outer").addEventListener("input", () =>
+    updateCharCount("message-outer", "message-outer-count")
+  );
+  document.getElementById("message-inner").addEventListener("input", () =>
+    updateCharCount("message-inner", "message-inner-count")
+  );
+
+  onClickOnce(document.getElementById("generate-btn"), async () => {
     state.contentTitle = document.getElementById("content-title").value.trim();
     state.senderName = document.getElementById("sender-name").value.trim();
     state.recipientMemo = document.getElementById("recipient-memo").value.trim();
@@ -386,16 +450,37 @@ function init() {
     await generateMessages();
   });
 
-  document.getElementById("send-line-btn").addEventListener("click", async () => {
+  function captureMessageEdits() {
     state.messageOuter = document.getElementById("message-outer").value;
     state.messageInner = document.getElementById("message-inner").value;
+  }
 
-    const shareUrl = await createShare();
+  onClickOnce(document.getElementById("send-line-btn"), async () => {
+    captureMessageEdits();
+
+    const shareUrl = await ensureShareCreated();
     document.getElementById("share-url").value = shareUrl;
 
     const lineText = `${state.messageOuter}\n${shareUrl}`;
     const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`;
     window.open(lineUrl, "_blank");
+
+    goToStep(3);
+  });
+
+  onClickOnce(document.getElementById("other-share-btn"), async () => {
+    captureMessageEdits();
+
+    const shareUrl = await ensureShareCreated();
+    document.getElementById("share-url").value = shareUrl;
+
+    try {
+      await navigator.share({ text: `${state.messageOuter}\n${shareUrl}` });
+    } catch (err) {
+      if (err?.name !== "AbortError") {
+        console.error("navigator.share failed", err);
+      }
+    }
 
     goToStep(3);
   });

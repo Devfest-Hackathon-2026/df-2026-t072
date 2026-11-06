@@ -19,19 +19,19 @@
   <!-- Step 1: コンテンツ選択 -->
   <section class="step active" data-step="1">
     <div class="card">
-      <h1>何を共有する？</h1>
+      <h1>何を共有する？<span class="badge-required">必須</span></h1>
       <p class="sub">好きなジャンルを選んでね</p>
       <div class="chip-group" id="content-type-group"></div>
     </div>
     <div class="card">
-      <h2>タイトル</h2>
-      <input type="text" id="content-title" placeholder="例：君の名は。" />
+      <h2>タイトル<span class="badge-required">必須</span></h2>
+      <input type="text" id="content-title" placeholder="例：君の名は。" aria-label="タイトル" />
     </div>
     <div class="card">
       <h2>相手に合わせてAIに提案してもらう</h2>
       <p class="sub">任意：相手の名前と人物像を入れると、AIが候補を出すよ</p>
-      <input type="text" id="persona-name" placeholder="相手の名前（例：さくらちゃん）" />
-      <textarea id="persona-description" placeholder="どんな人か（例：K-POP好き、泣けるアニメにハマってる）" rows="2" style="margin-top:8px;"></textarea>
+      <input type="text" id="persona-name" placeholder="相手の名前（例：さくらちゃん）" aria-label="相手の名前" />
+      <textarea id="persona-description" placeholder="どんな人か（例：K-POP好き、泣けるアニメにハマってる）" rows="2" style="margin-top:8px;" aria-label="相手がどんな人か"></textarea>
       <button class="btn btn-secondary" id="persona-suggest-btn" type="button" style="margin-top:10px;">AIに提案してもらう</button>
       <p class="loading hidden" id="persona-suggest-loading">考え中...</p>
       <div class="persona-results hidden" id="persona-suggest-results"></div>
@@ -47,27 +47,28 @@
     <div class="card">
       <h2>あなたの名前</h2>
       <p class="sub">受け取った相手の画面に表示されます</p>
-      <input type="text" id="sender-name" placeholder="例：たろう" />
+      <input type="text" id="sender-name" placeholder="例：たろう" aria-label="あなたの名前" />
     </div>
     <div class="card">
       <h2>送る相手（メモ用）</h2>
       <p class="sub">任意：誰に送ったか自分が後で分かるように。相手には表示されません</p>
-      <input type="text" id="recipient-memo" placeholder="例：さくらちゃん" />
+      <input type="text" id="recipient-memo" placeholder="例：さくらちゃん" aria-label="送る相手のメモ" />
     </div>
     <div class="card">
-      <h2>ここが好き</h2>
+      <h2>ここが好き<span class="badge-required">必須</span></h2>
       <p class="sub">当てはまるものを選んでね（複数選択OK）</p>
-      <div class="chip-group" id="tag-group"></div>
+      <div class="chip-group" id="tag-group"><p class="sub" id="tag-placeholder" style="margin:0;">まずジャンルを選んでね</p></div>
     </div>
     <div class="card">
-      <h2>どのくらい伝える？</h2>
+      <h2>どのくらい伝える？<span class="badge-required">必須</span></h2>
       <p class="sub">温度感を選んでね</p>
       <div class="chip-group" id="disclosure-group"></div>
     </div>
     <div class="card">
       <h2>LINEのやり取りスクショ（任意）</h2>
       <p class="sub">相手とのいつものトーンに合わせたメッセージを作るよ</p>
-      <input type="file" id="screenshot-input" accept="image/*" />
+      <input type="file" id="screenshot-input" accept="image/*" aria-label="LINEのやり取りスクショ" />
+      <img id="screenshot-preview" class="candidate-thumbnail hidden" alt="選択したスクリーンショットのプレビュー" style="margin-top:10px;" />
     </div>
     <div class="nav-buttons">
       <button class="btn btn-primary" id="generate-btn">メッセージを作る</button>
@@ -82,15 +83,20 @@
     <div class="card hidden" id="preview-card">
       <h2>LINEで送るメッセージ</h2>
       <img id="preview-image" class="preview-image hidden" alt="" />
-      <textarea id="message-outer"></textarea>
+      <textarea id="message-outer" aria-label="LINEで送るメッセージ"></textarea>
+      <p class="char-count" id="message-outer-count">0文字</p>
     </div>
     <div class="card hidden" id="preview-inner-card">
       <h2>リンクを開くと見える内容</h2>
-      <textarea id="message-inner"></textarea>
+      <textarea id="message-inner" aria-label="リンクを開くと見える内容"></textarea>
+      <p class="char-count" id="message-inner-count">0文字</p>
     </div>
     <div class="nav-buttons hidden" id="preview-nav">
       <button class="btn btn-secondary" data-back>戻る</button>
       <button class="btn btn-line" id="send-line-btn">LINEで送る</button>
+    </div>
+    <div class="nav-buttons hidden" id="other-share-nav">
+      <button class="btn btn-secondary" id="other-share-btn">他のアプリでシェア（Instagram・TikTokなど）</button>
     </div>
   </section>
 
@@ -99,7 +105,7 @@
     <div class="card">
       <h1>送信リンクができたよ</h1>
       <p class="sub">LINEアプリが開かなかった場合はこちらのリンクをコピーして送ってね</p>
-      <input type="text" id="share-url" readonly />
+      <input type="text" id="share-url" readonly aria-label="共有リンク" />
     </div>
     <div class="nav-buttons">
       <button class="btn btn-secondary" id="copy-link-btn">リンクをコピー</button>
