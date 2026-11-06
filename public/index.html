@@ -41,7 +41,14 @@
       <h1>YouTubeと連携する？</h1>
       <p class="sub">あなたの視聴傾向と相手の情報を掛け合わせて、AIが候補を選ぶよ</p>
       <button class="btn btn-primary" id="youtube-connect-btn" type="button">YouTubeと連携する</button>
-      <p class="loading hidden" id="youtube-connect-loading">確認中...</p>
+      <div class="venn-loading hidden" id="youtube-connect-loading">
+        <svg class="venn-loading-svg" viewBox="0 0 200 120" role="img" aria-label="共鳴ポイントを探しているアニメーション">
+          <circle class="venn-loading-circle mine" cx="70" cy="60" r="45" />
+          <circle class="venn-loading-circle theirs" cx="130" cy="60" r="45" />
+          <text class="venn-loading-spark" x="100" y="67">✨</text>
+        </svg>
+        <p class="house-loading-text" id="youtube-loading-text">あなたの視聴傾向を確認中…</p>
+      </div>
       <button class="btn-text" id="youtube-skip-btn" type="button">連携しない場合はスキップ</button>
     </div>
     <div class="nav-buttons">

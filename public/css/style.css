@@ -431,6 +431,84 @@ textarea {
   }
 }
 
+.venn-loading {
+  padding: 8px 0 4px;
+}
+
+.venn-loading-svg {
+  display: block;
+  width: 100%;
+  max-width: 220px;
+  margin: 0 auto;
+  height: auto;
+  overflow: visible;
+}
+
+.venn-loading-circle {
+  transform-box: fill-box;
+  transform-origin: center;
+  stroke-width: 2;
+}
+
+.venn-loading-circle.mine {
+  fill: var(--color-primary);
+  fill-opacity: 0.3;
+  stroke: var(--color-primary-dark);
+  stroke-opacity: 0.5;
+  animation: venn-loading-mine 2.2s ease-in-out infinite;
+}
+
+.venn-loading-circle.theirs {
+  fill: var(--color-accent);
+  fill-opacity: 0.3;
+  stroke: var(--color-accent-dark);
+  stroke-opacity: 0.5;
+  animation: venn-loading-theirs 2.2s ease-in-out infinite;
+}
+
+.venn-loading-spark {
+  font-size: 22px;
+  text-anchor: middle;
+  fill: var(--color-primary-dark);
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: venn-loading-spark 2.2s ease-in-out infinite;
+}
+
+@keyframes venn-loading-mine {
+  0%, 100% {
+    transform: translateX(-12px);
+  }
+  50% {
+    transform: translateX(10px);
+  }
+}
+
+@keyframes venn-loading-theirs {
+  0%, 100% {
+    transform: translateX(12px);
+  }
+  50% {
+    transform: translateX(-10px);
+  }
+}
+
+@keyframes venn-loading-spark {
+  0%, 28%, 100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  72% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+}
+
 @keyframes house-complete-flash {
   0% {
     filter: brightness(1) drop-shadow(0 0 0 rgba(255, 255, 255, 0));

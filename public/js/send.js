@@ -117,19 +117,24 @@ const LOADING_PHRASES = [
   "もうすぐできあがります…"
 ];
 
+const YOUTUBE_LOADING_PHRASES = [
+  "あなたの視聴傾向を確認中…",
+  "共通点を探しています…",
+  "もうすぐ見つかりそうです…"
+];
+
 const MIN_LOADING_MS = 3000;
 const PHRASE_INTERVAL_MS = 650;
 const PHRASE_FADE_MS = 250;
 const FINISH_FLASH_MS = 650;
 
-function startLoadingTextCycle() {
-  const textEl = document.getElementById("house-loading-text");
+function startTextCycle(textEl, phrases) {
   textEl.classList.remove("fade-out", "pulsing");
-  textEl.textContent = LOADING_PHRASES[0];
+  textEl.textContent = phrases[0];
 
   let index = 0;
   const timer = setInterval(() => {
-    if (index >= LOADING_PHRASES.length - 1) {
+    if (index >= phrases.length - 1) {
       clearInterval(timer);
       textEl.classList.add("pulsing");
       return;
@@ -137,12 +142,16 @@ function startLoadingTextCycle() {
     textEl.classList.add("fade-out");
     setTimeout(() => {
       index += 1;
-      textEl.textContent = LOADING_PHRASES[index];
+      textEl.textContent = phrases[index];
       textEl.classList.remove("fade-out");
     }, PHRASE_FADE_MS);
   }, PHRASE_INTERVAL_MS);
 
   return () => clearInterval(timer);
+}
+
+function startLoadingTextCycle() {
+  return startTextCycle(document.getElementById("house-loading-text"), LOADING_PHRASES);
 }
 
 function wait(ms) {
@@ -432,6 +441,10 @@ function setupStep2() {
         }
 
         loading.classList.remove("hidden");
+        const stopYoutubeTextCycle = startTextCycle(
+          document.getElementById("youtube-loading-text"),
+          YOUTUBE_LOADING_PHRASES
+        );
 
         try {
           const suggestFromYoutube = httpsCallable(functions, "suggestFromYoutube");
@@ -455,6 +468,7 @@ function setupStep2() {
           alert("候補の生成に失敗しました。スキップして自分で入力してね");
           goToStep(3);
         } finally {
+          stopYoutubeTextCycle();
           loading.classList.add("hidden");
           connectBtn.disabled = false;
         }
