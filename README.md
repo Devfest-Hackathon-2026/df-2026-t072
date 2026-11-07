@@ -107,6 +107,8 @@ firebase deploy
 19. メッセージ生成中のローディングアニメーション — SVGで「家が建っていく」演出（土台→壁→屋根→窓の明かり→ハート/音符が浮かぶ）をブルー系カラーで表現し、サブテキストを5フェーズに分けてフェードイン・アウトで切り替え。生成時間に合わせて表示時間を伸縮（最低3秒）し、完了時は家がパッと明るくなるフラッシュ演出を挟んでからプレビュー画面へ遷移。待機が長引いても止まって見えないよう、建ち終わった後のアイドル状態（窓の明滅・ハート/音符の上下動+回転・家全体の軽いバウンド）も強めに演出（Playwrightのheadless Chromiumでcomputed styleの時系列変化を確認済み）
 20. YouTube連携中のローディングアニメーション — Step2の「YouTubeと連携する」待機中にも、あなた(青)と相手(オレンジ)の円が近づいたり離れたりするベン図風アニメーションとキラキラ(✨)の重なり演出、3フェーズのサブテキストを追加
 21. PWA化（ホーム画面・アプリ一覧への追加に対応） — `manifest.json`（アイコン・テーマカラー#378adb）、ハウスロゴのアイコン（`public/icons/`、Playwrightでレンダリングして生成）、最小限のService Worker（`service-worker.js`、同一オリジンのGETのみキャッシュ対象。Firebase/Google系の外部リクエストは横取りしない）を追加し、全ページ（`index.html`/`share.html`/`status.html`/`mypage.html`/`ogp.js`）にmanifestリンク・アイコン・SW登録を設定。Chromeの「インストール」やスマホの「ホーム画面に追加」でアプリアイコン付きで保存できる
+22. `reactions`のFirestoreルール修正 — 認証済みなら誰でも任意のreactionsを作成・上書きできた穴を塞ぎ、`reactorId`が自分のuidと一致する場合のみ作成・更新を許可
+23. 死んでいたロジックに実際の分岐を追加 — `shares.scoreTriggerType`（instant/cumulative）を`scoreCalculator.js`で実際に参照し、ディープ(cumulative)共有は「ジャンル別の良いタイミング窓」（`functions/src/remindDays.js`、旧`REMIND_DAYS`相当）内での反応を高く評価する計算式に分岐。`generateAiCover`も同じ窓を使い、経過日数を「早すぎ／ちょうど良い／遅め」の3段階でジャンルごとに判定してメッセージの言い回しを変えるように変更（従来は全ジャンル一律で2値判定だった）
 
 **未実装（ピッチで語る未来機能）**
 - 累積型スコア判定の精度向上
@@ -127,7 +129,6 @@ firebase deploy
 - `reactions/{shareId}` は1件のみを保持するスキーマのため、「往復回数2往復以上」のスコアリング信号は未実装（サブコレクション化などの拡張が必要）
 - 送信者の表示名はFirebase Authの匿名ユーザーには存在しないため、`shares.senderName` という追加フィールドを入力式で持たせている
 - 画像解析・JSON生成はGeminiの出力ゆらぎに弱いため、本実装時はスキーマ検証とリトライを追加すること
-- `shares.scoreTriggerType`（instant/cumulative）は保存のみで`scoreCalculator.js`からは未参照。`constants.js`の`REMIND_DAYS`（ジャンル別リマインド日数）もどこからも未使用（将来のプッシュ通知機能と連動させる想定の先行データ）
 - Gemini/YouTube APIを呼ぶ関数（`generateMessage`/`suggestFromYoutube`/`suggestContentForPerson`）にレート制限・App Check等の悪用防止策は未設定
 - スクリーンショットアップロードにファイルサイズ・形式のバリデーションが無い
 - 自動テストなし

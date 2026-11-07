@@ -1,5 +1,6 @@
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { getFirestore } = require("firebase-admin/firestore");
+const { getSweetSpotDays } = require("./remindDays");
 
 const EMOJI_REGEX = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u;
 const LONG_TEXT_THRESHOLD = 15;
@@ -10,6 +11,10 @@ function isSameDay(a, b) {
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate()
   );
+}
+
+function daysBetween(a, b) {
+  return Math.floor((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 function scoreToFlameLevel(score) {
@@ -35,8 +40,20 @@ exports.calculateScore = onDocumentWritten(
 
     const createdAt = share.createdAt ? share.createdAt.toDate() : null;
     const reactedAt = reaction.reactedAt ? reaction.reactedAt.toDate() : null;
-    if (createdAt && reactedAt && isSameDay(createdAt, reactedAt)) {
-      score += 3; // 返信速度: 高
+
+    if (share.scoreTriggerType === "cumulative") {
+      // ディープ共有は「じっくり受け止めて、ちょうど良いタイミングで反応してくれたか」を重視する
+      const [minDay, maxDay] = getSweetSpotDays(share.contentType);
+      const elapsedDays = createdAt && reactedAt ? daysBetween(createdAt, reactedAt) : null;
+      if (elapsedDays !== null && elapsedDays >= minDay && elapsedDays <= maxDay) {
+        score += 3; // ジャンル別の「良いタイミング」窓内での反応: 高
+      } else if (elapsedDays === 0) {
+        score += 1; // 即日だが、ディープな内容を消化する間もない反応: 弱め
+      } else if (elapsedDays !== null && elapsedDays > maxDay) {
+        score += 1; // 窓を過ぎてからの反応: 弱め
+      }
+    } else if (createdAt && reactedAt && isSameDay(createdAt, reactedAt)) {
+      score += 3; // ライト共有は即日反応を重視: 返信速度 高
     }
 
     const comment = reaction.comment || "";

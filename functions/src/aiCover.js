@@ -1,14 +1,18 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { generateText } = require("./gemini");
+const { getSweetSpotDays } = require("./remindDays");
 
-function pickSituation(daysSinceSent) {
-  if (daysSinceSent <= 2) return "early";
+function pickSituation(daysSinceSent, contentType) {
+  const [minDay, maxDay] = getSweetSpotDays(contentType);
+  if (daysSinceSent < minDay) return "early";
+  if (daysSinceSent <= maxDay) return "within";
   return "late";
 }
 
 const SITUATION_INSTRUCTIONS = {
-  early: "まだ数日しか経っていません。『タイミングが合わなかっただけかも』というニュアンスで、軽く慰めてください。",
-  late: "数日経っています。『もう一度試してみる価値があるかも』と、そっと背中を押してください。"
+  early: "送ってからまだあまり時間が経っていません。急かさず、『まだゆっくり見ている最中かもね』という、せかさない優しいニュアンスで。",
+  within: "このジャンルならそろそろ見終わって反応が来てもおかしくない頃合いです。『そろそろ感想聞けるかな』という軽い期待感のニュアンスで。",
+  late: "想定より時間が経っています。『もう一度試してみる価値があるかも』と、そっと背中を押してください。"
 };
 
 exports.generateAiCover = onCall({ region: "asia-northeast1" }, async (request) => {
@@ -18,7 +22,7 @@ exports.generateAiCover = onCall({ region: "asia-northeast1" }, async (request) 
     throw new HttpsError("invalid-argument", "contentTitle, daysSinceSent は必須です");
   }
 
-  const situation = pickSituation(daysSinceSent);
+  const situation = pickSituation(daysSinceSent, contentType);
   const instruction = SITUATION_INSTRUCTIONS[situation];
 
   const prompt = `
