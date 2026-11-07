@@ -26,6 +26,9 @@ exports.suggestContentForPerson = onCall({ region: "asia-northeast1" }, async (r
   if (!personName || !personDescription) {
     throw new HttpsError("invalid-argument", "personName, personDescription は必須です");
   }
+  if (personName.length > 100 || personDescription.length > 500) {
+    throw new HttpsError("invalid-argument", "入力が長すぎます");
+  }
 
   const prompt = buildPrompt({ personName, personDescription });
 

@@ -42,3 +42,5 @@ ${instruction}
     throw new HttpsError("internal", "カバーメッセージの生成に失敗しました");
   }
 });
+
+exports.pickSituation = pickSituation;

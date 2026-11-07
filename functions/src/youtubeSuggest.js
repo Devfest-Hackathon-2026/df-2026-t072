@@ -172,6 +172,9 @@ exports.suggestFromYoutube = onCall({ region: "asia-northeast1" }, async (reques
   if (!accessToken) {
     throw new HttpsError("invalid-argument", "accessToken は必須です");
   }
+  if ((personName && personName.length > 100) || (personDescription && personDescription.length > 500)) {
+    throw new HttpsError("invalid-argument", "入力が長すぎます");
+  }
 
   let items = await fetchLikedVideoItems(accessToken);
   let source = "likes";
@@ -204,3 +207,5 @@ exports.suggestFromYoutube = onCall({ region: "asia-northeast1" }, async (reques
     return { candidates, source, matchedPersona: false, venn: null };
   }
 });
+
+exports.pickDiverseByGenre = pickDiverseByGenre;

@@ -10,6 +10,7 @@ import { CONTENT_TYPES, LIKE_TAGS_BY_GENRE, DISCLOSURE_LEVELS, RELATIONSHIP_STAG
 import { YOUTUBE_CLIENT_ID } from "./youtube-config.js";
 
 const TOTAL_STEPS = 5;
+const MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024;
 
 const state = {
   personName: "",
@@ -520,14 +521,31 @@ function init() {
   });
 
   document.getElementById("screenshot-input").addEventListener("change", (e) => {
-    const file = e.target.files[0];
+    const input = e.target;
+    const file = input.files[0];
     const preview = document.getElementById("screenshot-preview");
-    if (file) {
-      preview.src = URL.createObjectURL(file);
-      preview.classList.remove("hidden");
-    } else {
+
+    if (!file) {
       preview.classList.add("hidden");
+      return;
     }
+
+    if (!file.type.startsWith("image/")) {
+      alert("画像ファイルを選んでね");
+      input.value = "";
+      preview.classList.add("hidden");
+      return;
+    }
+
+    if (file.size > MAX_SCREENSHOT_BYTES) {
+      alert("画像サイズが大きすぎます（5MBまで）。もう少し小さい画像を選んでね");
+      input.value = "";
+      preview.classList.add("hidden");
+      return;
+    }
+
+    preview.src = URL.createObjectURL(file);
+    preview.classList.remove("hidden");
   });
 
   document.getElementById("message-outer").addEventListener("input", () =>

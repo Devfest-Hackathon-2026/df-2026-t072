@@ -56,8 +56,14 @@ ${relationshipInstruction}
 `.trim();
 }
 
+const MAX_SCREENSHOT_BASE64_LENGTH = 8_000_000; // base64換算で約6MB相当
+
 async function extractToneHint(screenshotBase64) {
   if (!screenshotBase64) return null;
+  if (screenshotBase64.length > MAX_SCREENSHOT_BASE64_LENGTH) {
+    console.warn("screenshotBase64 too large, skipping tone extraction");
+    return null;
+  }
   const prompt =
     "この画像はLINEのトーク画面のスクリーンショットです。二人のやり取りの文体・絵文字の使い方・距離感を一文で簡潔に説明してください。説明文のみ出力してください。";
   try {
@@ -85,6 +91,12 @@ exports.generateMessage = onCall(
 
     if (!contentType || !contentTitle || !disclosureLevel) {
       throw new HttpsError("invalid-argument", "contentType, contentTitle, disclosureLevel は必須です");
+    }
+    if (contentTitle.length > 200) {
+      throw new HttpsError("invalid-argument", "タイトルが長すぎます");
+    }
+    if (personDescription && personDescription.length > 500) {
+      throw new HttpsError("invalid-argument", "人物像の説明が長すぎます");
     }
 
     const toneHint = await extractToneHint(screenshotBase64);

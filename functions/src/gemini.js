@@ -1,13 +1,20 @@
 const { GoogleGenAI } = require("@google/genai");
 
-const PROJECT_ID = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT;
 const LOCATION = "global";
 const MODEL_NAME = "gemini-3.5-flash";
 
-const ai = new GoogleGenAI({ vertexai: true, project: PROJECT_ID, location: LOCATION });
+let aiClient = null;
+
+function getClient() {
+  if (!aiClient) {
+    const projectId = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT;
+    aiClient = new GoogleGenAI({ vertexai: true, project: projectId, location: LOCATION });
+  }
+  return aiClient;
+}
 
 async function generateText(prompt) {
-  const response = await ai.models.generateContent({
+  const response = await getClient().models.generateContent({
     model: MODEL_NAME,
     contents: prompt
   });
@@ -15,7 +22,7 @@ async function generateText(prompt) {
 }
 
 async function generateTextWithImage(prompt, imageBase64, mimeType = "image/jpeg") {
-  const response = await ai.models.generateContent({
+  const response = await getClient().models.generateContent({
     model: MODEL_NAME,
     contents: [{ text: prompt }, { inlineData: { data: imageBase64, mimeType } }]
   });

@@ -6,7 +6,17 @@ service cloud.firestore {
     match /shares/{shareId} {
       allow read: if true;
       allow create: if request.auth != null
-        && request.resource.data.senderId == request.auth.uid;
+        && request.resource.data.senderId == request.auth.uid
+        && request.resource.data.contentType is string
+        && request.resource.data.contentType.size() < 30
+        && request.resource.data.contentTitle is string
+        && request.resource.data.contentTitle.size() > 0
+        && request.resource.data.contentTitle.size() < 200
+        && request.resource.data.messageOuter is string
+        && request.resource.data.messageOuter.size() < 300
+        && request.resource.data.messageInner is string
+        && request.resource.data.messageInner.size() < 500
+        && request.resource.data.disclosureLevel in ["light", "deep"];
       allow update, delete: if request.auth != null
         && resource.data.senderId == request.auth.uid;
     }
@@ -14,10 +24,14 @@ service cloud.firestore {
     match /reactions/{shareId} {
       allow read: if true;
       allow create: if request.auth != null
-        && request.resource.data.reactorId == request.auth.uid;
+        && request.resource.data.reactorId == request.auth.uid
+        && request.resource.data.comment is string
+        && request.resource.data.comment.size() < 500;
       allow update: if request.auth != null
         && resource.data.reactorId == request.auth.uid
-        && request.resource.data.reactorId == request.auth.uid;
+        && request.resource.data.reactorId == request.auth.uid
+        && request.resource.data.comment is string
+        && request.resource.data.comment.size() < 500;
       allow delete: if false;
     }
 

@@ -130,5 +130,11 @@ firebase deploy
 - 送信者の表示名はFirebase Authの匿名ユーザーには存在しないため、`shares.senderName` という追加フィールドを入力式で持たせている
 - 画像解析・JSON生成はGeminiの出力ゆらぎに弱いため、本実装時はスキーマ検証とリトライを追加すること
 - Gemini/YouTube APIを呼ぶ関数（`generateMessage`/`suggestFromYoutube`/`suggestContentForPerson`）にレート制限・App Check等の悪用防止策は未設定
-- スクリーンショットアップロードにファイルサイズ・形式のバリデーションが無い
-- 自動テストなし
+
+## 直近の修正（セキュリティ・堅牢性）
+
+- `reactions`のFirestoreルールを修正し、`reactorId`が自分のuidと一致する場合のみ作成・更新できるように（従来は認証済みなら誰でも任意のreactionsを作成・上書き可能だった）
+- `shares`/`reactions`のFirestoreルールに最低限のスキーマ検証を追加（型・文字数の上限チェック）し、Cloud Functionsを経由しない直接書き込みでゴミデータが入らないようにした
+- スクリーンショットのファイルサイズ（5MBまで）・形式（image/*）をクライアント側で検証し、`generateMessage`側でもbase64の長さ・タイトル/人物像の文字数に防御的な上限チェックを追加
+- `gemini.js`がrequireされた瞬間にGoogleGenAIクライアントを生成していた問題を修正し、実際に使う時まで遅延初期化するように変更（環境変数が無い状況で即座に落ちていた）
+- `functions/test/`に最小限の自動テストを追加（`npm test`で実行、`node --test`使用、外部APIキー不要の純粋関数のみ対象）：`scoreToFlameLevel`/`isSameDay`/`daysBetween`/`pickSituation`/`getSweetSpotDays`/`pickDiverseByGenre`

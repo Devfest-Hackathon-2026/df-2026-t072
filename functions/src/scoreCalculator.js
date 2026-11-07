@@ -76,3 +76,7 @@ exports.calculateScore = onDocumentWritten(
       });
   }
 );
+
+exports.isSameDay = isSameDay;
+exports.daysBetween = daysBetween;
+exports.scoreToFlameLevel = scoreToFlameLevel;
