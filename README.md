@@ -109,6 +109,7 @@ firebase deploy
 21. PWA化（ホーム画面・アプリ一覧への追加に対応） — `manifest.json`（アイコン・テーマカラー#378adb）、ハウスロゴのアイコン（`public/icons/`、Playwrightでレンダリングして生成）、最小限のService Worker（`service-worker.js`、同一オリジンのGETのみキャッシュ対象。Firebase/Google系の外部リクエストは横取りしない）を追加し、全ページ（`index.html`/`share.html`/`status.html`/`mypage.html`/`ogp.js`）にmanifestリンク・アイコン・SW登録を設定。Chromeの「インストール」やスマホの「ホーム画面に追加」でアプリアイコン付きで保存できる
 22. `reactions`のFirestoreルール修正 — 認証済みなら誰でも任意のreactionsを作成・上書きできた穴を塞ぎ、`reactorId`が自分のuidと一致する場合のみ作成・更新を許可
 23. 死んでいたロジックに実際の分岐を追加 — `shares.scoreTriggerType`（instant/cumulative）を`scoreCalculator.js`で実際に参照し、ディープ(cumulative)共有は「ジャンル別の良いタイミング窓」（`functions/src/remindDays.js`、旧`REMIND_DAYS`相当）内での反応を高く評価する計算式に分岐。`generateAiCover`も同じ窓を使い、経過日数を「早すぎ／ちょうど良い／遅め」の3段階でジャンルごとに判定してメッセージの言い回しを変えるように変更（従来は全ジャンル一律で2値判定だった）
+24. 全画面の背景デザインを刷新 — ダークネイビー〜ダークブルーのグラデーション（`#0F1923`→`#1A2A3A`、`background-attachment: fixed`）に変更し、映画・音楽・ゲーム等のエンタメアイコンを薄く（opacity 0.045〜0.06、一部ぼかし）散りばめたテクスチャを重ねた。テクスチャはPlaywrightで1枚の透過PNG（`public/img/bg-texture.png`、900x900、約53KB）として書き出し済みの静的画像をタイル状に敷く方式のため、DOM要素やアニメーション無しで軽量。カード・ボタンは引き続き白背景で浮き出るデザインを維持し、ヘッダーのロゴ・ナビリンクなど背景に直接乗る文字だけ明るい色（`--color-on-dark`/`--color-on-dark-sub`）に変更
 
 **未実装（ピッチで語る未来機能）**
 - 累積型スコア判定の精度向上
