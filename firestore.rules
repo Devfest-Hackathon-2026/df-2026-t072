@@ -13,7 +13,11 @@ service cloud.firestore {
 
     match /reactions/{shareId} {
       allow read: if true;
-      allow create, update: if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.data.reactorId == request.auth.uid;
+      allow update: if request.auth != null
+        && resource.data.reactorId == request.auth.uid
+        && request.resource.data.reactorId == request.auth.uid;
       allow delete: if false;
     }
 

@@ -127,3 +127,7 @@ firebase deploy
 - `reactions/{shareId}` は1件のみを保持するスキーマのため、「往復回数2往復以上」のスコアリング信号は未実装（サブコレクション化などの拡張が必要）
 - 送信者の表示名はFirebase Authの匿名ユーザーには存在しないため、`shares.senderName` という追加フィールドを入力式で持たせている
 - 画像解析・JSON生成はGeminiの出力ゆらぎに弱いため、本実装時はスキーマ検証とリトライを追加すること
+- `shares.scoreTriggerType`（instant/cumulative）は保存のみで`scoreCalculator.js`からは未参照。`constants.js`の`REMIND_DAYS`（ジャンル別リマインド日数）もどこからも未使用（将来のプッシュ通知機能と連動させる想定の先行データ）
+- Gemini/YouTube APIを呼ぶ関数（`generateMessage`/`suggestFromYoutube`/`suggestContentForPerson`）にレート制限・App Check等の悪用防止策は未設定
+- スクリーンショットアップロードにファイルサイズ・形式のバリデーションが無い
+- 自動テストなし
