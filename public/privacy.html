@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Resonate | プライバシーポリシー</title>
+<link rel="manifest" href="/manifest.json" />
+<meta name="theme-color" content="#378adb" />
+<link rel="icon" href="/icons/icon-192.png" />
+<link rel="apple-touch-icon" href="/icons/icon-192.png" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="app">
+  <header class="app-header">
+    <span class="logo">Resonate</span>
+    <a class="header-nav-link" href="index.html">ホームへ</a>
+  </header>
+
+  <div class="card">
+    <h1>プライバシーポリシー</h1>
+    <p class="sub">最終更新日：2026年11月8日</p>
+    <p>Resonate（以下「本アプリ」）は、好きなエンタメコンテンツをさりげなく友人・知人と共有し、関係を深めることを目的としたWebアプリです。本ポリシーでは、本アプリが取得・利用する情報について説明します。</p>
+  </div>
+
+  <div class="card">
+    <h2>取得する情報</h2>
+    <ul>
+      <li>Firebase Authentication（匿名認証）により発行される、個人を特定しない匿名のユーザーID</li>
+      <li>共有コンテンツに関する情報（ジャンル・タイトル・好きなポイント・生成されたメッセージ・任意で入力した送信者名や相手のメモ）</li>
+      <li>受け取った相手によるリアクション（絵文字・任意のコメント）</li>
+      <li>任意でアップロードされたLINEトーク画面のスクリーンショット（メッセージのトーン分析にのみ使用し、保存はしません）</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>YouTubeの情報へのアクセスについて</h2>
+    <p>本アプリの「YouTube連携」機能を利用する場合、Googleアカウントの認可（OAuth）を通じて、ユーザー自身の「いいねした動画」または「登録チャンネル」の一覧（タイトル・サムネイル画像・リンク）を取得します。</p>
+    <p>取得した情報は、以下の目的にのみ使用します。</p>
+    <ul>
+      <li>共有相手に合いそうなコンテンツ候補をAI（Gemini）が選び、提案画面に表示するため</li>
+    </ul>
+    <p>取得したYouTube関連データは、提案を表示する処理の中でのみ一時的に使用され、サーバー側のデータベースに永続的に保存することはありません。広告目的での利用、第三者への販売・提供、本アプリの提案機能以外の目的での利用は一切行いません（Google API Services User Data Policyの制限付き使用要件を遵守します）。</p>
+  </div>
+
+  <div class="card">
+    <h2>情報の第三者提供・外部サービスの利用</h2>
+    <p>本アプリは、以下の外部サービス（いずれもGoogle社が提供するもの）を利用して情報を処理します。</p>
+    <ul>
+      <li>Firebase（Authentication / Firestore / Hosting / Cloud Functions）</li>
+      <li>Vertex AI（Gemini API） — メッセージ生成・提案生成のため</li>
+      <li>Google Custom Search API — 共有カードの画像取得のため</li>
+      <li>YouTube Data API — 上記「YouTubeの情報へのアクセスについて」の目的のため</li>
+    </ul>
+    <p>これら以外の第三者に対して、取得した情報を販売・共有することはありません。</p>
+  </div>
+
+  <div class="card">
+    <h2>データの保存期間・削除</h2>
+    <p>共有コンテンツ・リアクション等のデータは、送信者本人がマイページから削除できる範囲で保存されます。削除をご希望の場合は、下記連絡先までご連絡ください。</p>
+  </div>
+
+  <div class="card">
+    <h2>お問い合わせ</h2>
+    <p>本ポリシーに関するご質問や、データ削除のご依頼は、下記メールアドレスまでご連絡ください。</p>
+    <p><a href="mailto:sangokame@gmail.com">sangokame@gmail.com</a></p>
+  </div>
+</div>
+<script src="js/register-sw.js"></script>
+</body>
+</html>
