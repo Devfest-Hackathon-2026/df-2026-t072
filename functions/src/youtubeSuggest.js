@@ -89,7 +89,7 @@ function buildOverlapPrompt(items, personName, personDescription) {
 合いそうなものが無ければ、無理に5件選ばず、少なくても構いません。
 
 一覧:
-${items.map((item, i) => `${i}: [${item.contentType}] ${item.contentTitle}`).join("\n")}
+${items.map((item, i) => `${i}: ${item.title}`).join("\n")}
 
 共有相手の名前: ${personName}
 共有相手がどんな人か: ${personDescription}
@@ -110,18 +110,22 @@ ${items.map((item, i) => `${i}: [${item.contentType}] ${item.contentTitle}`).joi
 `.trim();
 }
 
+// 分類(classifyGenres)と並列実行するため、ジャンルのヒントを渡さず
+// タイトルだけから選ばせる。選ばれたindexに後からclassifyGenresの結果を
+// 組み合わせてcontentTypeを補う。
 async function selectForPersona(items, personName, personDescription) {
   const prompt = buildOverlapPrompt(items, personName, personDescription);
   const data = await generateJson(prompt);
-  const valid = (data.selections || []).filter((s) => s && Number.isInteger(s.index) && items[s.index]);
-  const selected = valid.slice(0, 5).map((s) => ({ ...items[s.index], reason: s.reason || "" }));
+  const selections = (data.selections || [])
+    .filter((s) => s && Number.isInteger(s.index) && items[s.index])
+    .slice(0, 5);
 
-  if (selected.length === 0) {
-    return { candidates: pickDiverseByGenre(items, 5), venn: null };
+  if (selections.length === 0) {
+    return { selections: [], venn: null };
   }
 
   return {
-    candidates: selected,
+    selections,
     venn: {
       yourTendency: data.yourTendency || "",
       theirTendency: data.theirTendency || "",
@@ -189,11 +193,26 @@ exports.suggestFromYoutube = onCall({ region: "asia-northeast1" }, async (reques
   }
 
   try {
-    const classified = await classifyGenres(items);
     if (hasPersona) {
-      const { candidates, venn } = await selectForPersona(classified, personName, personDescription);
-      return { candidates, source, matchedPersona: Boolean(venn), venn };
+      // 分類と相手向けの選定は互いの結果に依存しないため、並列実行して待ち時間を短縮する
+      const [classified, personaResult] = await Promise.all([
+        classifyGenres(items),
+        selectForPersona(items, personName, personDescription)
+      ]);
+
+      if (personaResult.selections.length === 0) {
+        const candidates = pickDiverseByGenre(classified, 5);
+        return { candidates, source, matchedPersona: false, venn: null };
+      }
+
+      const candidates = personaResult.selections.map((s) => ({
+        ...classified[s.index],
+        reason: s.reason || ""
+      }));
+      return { candidates, source, matchedPersona: true, venn: personaResult.venn };
     }
+
+    const classified = await classifyGenres(items);
     const candidates = pickDiverseByGenre(classified, 5);
     return { candidates, source, matchedPersona: false, venn: null };
   } catch (err) {

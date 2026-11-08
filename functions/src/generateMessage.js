@@ -99,6 +99,11 @@ exports.generateMessage = onCall(
       throw new HttpsError("invalid-argument", "人物像の説明が長すぎます");
     }
 
+    // 画像検索はメッセージ本文の生成結果に依存しないため、並列で走らせて待ち時間を短縮する
+    const imageUrlPromise = knownImageUrl
+      ? Promise.resolve(knownImageUrl)
+      : fetchThumbnail(`${contentTitle} ${CONTENT_TYPE_LABELS[contentType] || contentType}`);
+
     const toneHint = await extractToneHint(screenshotBase64);
     const prompt = buildPrompt({
       contentType,
@@ -120,11 +125,7 @@ exports.generateMessage = onCall(
       throw new HttpsError("internal", "メッセージの生成に失敗しました");
     }
 
-    let imageUrl = knownImageUrl || null;
-    if (!imageUrl) {
-      const typeLabel = CONTENT_TYPE_LABELS[contentType] || contentType;
-      imageUrl = await fetchThumbnail(`${contentTitle} ${typeLabel}`);
-    }
+    const imageUrl = await imageUrlPromise;
 
     return { messageOuter, messageInner, imageUrl };
   }
