@@ -14,17 +14,26 @@ function contentTypeLabel(value) {
 }
 
 async function init() {
-  const user = await waitForUser();
-
-  const q = query(
-    collection(db, "shares"),
-    where("senderId", "==", user.uid),
-    orderBy("createdAt", "desc")
-  );
-  const snap = await getDocs(q);
-
-  const listEl = document.getElementById("share-list");
+  const loadingEl = document.getElementById("loading-state");
   const emptyEl = document.getElementById("empty-state");
+  const listEl = document.getElementById("share-list");
+
+  let snap;
+  try {
+    const user = await waitForUser();
+    const q = query(
+      collection(db, "shares"),
+      where("senderId", "==", user.uid),
+      orderBy("createdAt", "desc")
+    );
+    snap = await getDocs(q);
+  } catch (err) {
+    console.error("failed to load share history", err);
+    loadingEl.textContent = "読み込みに失敗しました。ページを再読み込みしてね";
+    return;
+  }
+
+  loadingEl.style.display = "none";
 
   if (snap.empty) {
     emptyEl.style.display = "block";

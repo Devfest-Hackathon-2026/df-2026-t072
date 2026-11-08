@@ -108,6 +108,7 @@ header.app-header .logo {
   background: var(--color-surface);
   border-radius: var(--radius);
   border: 1px solid var(--color-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   padding: 20px;
   margin-bottom: 16px;
 }
@@ -201,11 +202,22 @@ textarea {
   font-weight: 600;
   cursor: pointer;
   width: 100%;
+  transition: filter 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.btn:hover {
+  filter: brightness(1.06);
+}
+
+.btn:active {
+  filter: brightness(0.94);
+  transform: scale(0.98);
 }
 
 .btn-primary {
   background: var(--color-primary);
   color: #fff;
+  box-shadow: 0 4px 12px rgba(55, 138, 219, 0.35);
 }
 
 .btn-primary:disabled {
@@ -219,9 +231,15 @@ textarea {
   border: 1px solid var(--color-primary);
 }
 
+.btn-secondary:hover {
+  background: #f3f8fd;
+  filter: none;
+}
+
 .btn-line {
   background: #06c755;
   color: #fff;
+  box-shadow: 0 4px 12px rgba(6, 199, 85, 0.35);
 }
 
 .nav-buttons {
