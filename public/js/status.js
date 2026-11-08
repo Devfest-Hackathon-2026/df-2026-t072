@@ -16,12 +16,22 @@ function daysSince(timestamp) {
   return Math.floor((Date.now() - createdMs) / (1000 * 60 * 60 * 24));
 }
 
-function renderFlames(flameLevel) {
+function escapeHtml(str = "") {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function renderFlames(flameLevel, shareCount, recipientName) {
   const el = document.getElementById("flame-display");
   const flames = "🔥".repeat(flameLevel) + "〇".repeat(4 - flameLevel);
+  const label = recipientName ? `${escapeHtml(recipientName)}との盛り上がり` : "盛り上がり";
   el.innerHTML = `
     <div class="flames">${flames}</div>
     <div class="flame-text">${FLAME_MESSAGES[flameLevel] || ""}</div>
+    <p class="sub" style="margin-top:8px;">${label}（これまで${shareCount}回送信）</p>
   `;
 }
 
@@ -96,7 +106,6 @@ async function init() {
   document.getElementById("content-type-label").textContent = contentTypeLabel(share.contentType);
 
   const reactionSnap = await getDoc(doc(db, "reactions", shareId));
-  const scoreSnap = await getDoc(doc(db, "scores", shareId));
 
   if (!reactionSnap.exists()) {
     document.getElementById("flame-display").innerHTML =
@@ -109,10 +118,17 @@ async function init() {
     return;
   }
 
-  if (scoreSnap.exists()) {
-    const score = scoreSnap.data();
-    renderFlames(score.flameLevel);
-    if (score.flameLevel >= NEXT_ACTION_THRESHOLD) {
+  if (!share.relationshipId) {
+    document.getElementById("flame-display").innerHTML = '<p class="loading">集計中...</p>';
+    return;
+  }
+
+  const relationshipSnap = await getDoc(doc(db, "relationships", share.relationshipId));
+
+  if (relationshipSnap.exists()) {
+    const relationship = relationshipSnap.data();
+    renderFlames(relationship.flameLevel, relationship.shareCount, relationship.recipientName);
+    if (relationship.flameLevel >= NEXT_ACTION_THRESHOLD) {
       await setupNextAction(share, shareId);
     }
   } else {

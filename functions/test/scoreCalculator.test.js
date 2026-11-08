@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { isSameDay, daysBetween, scoreToFlameLevel } = require("../src/scoreCalculator");
+const { isSameDay, daysBetween, scoreToFlameLevel, cumulativeScoreToFlameLevel } = require("../src/scoreCalculator");
 
 test("isSameDay compares calendar day, not just 24h distance", () => {
   assert.equal(isSameDay(new Date("2026-01-01T23:00:00"), new Date("2026-01-01T01:00:00")), true);
@@ -21,4 +21,15 @@ test("scoreToFlameLevel thresholds", () => {
   assert.equal(scoreToFlameLevel(5), 3);
   assert.equal(scoreToFlameLevel(6), 4);
   assert.equal(scoreToFlameLevel(100), 4);
+});
+
+test("cumulativeScoreToFlameLevel thresholds (relationship-level)", () => {
+  assert.equal(cumulativeScoreToFlameLevel(0), 1);
+  assert.equal(cumulativeScoreToFlameLevel(5), 1);
+  assert.equal(cumulativeScoreToFlameLevel(6), 2);
+  assert.equal(cumulativeScoreToFlameLevel(11), 2);
+  assert.equal(cumulativeScoreToFlameLevel(12), 3);
+  assert.equal(cumulativeScoreToFlameLevel(19), 3);
+  assert.equal(cumulativeScoreToFlameLevel(20), 4);
+  assert.equal(cumulativeScoreToFlameLevel(100), 4);
 });

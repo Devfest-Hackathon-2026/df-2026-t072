@@ -24,6 +24,44 @@ function scoreToFlameLevel(score) {
   return 1;
 }
 
+function cumulativeScoreToFlameLevel(score) {
+  if (score >= 20) return 4; // 今だ！ネクストアクションのタイミング
+  if (score >= 12) return 3;
+  if (score >= 6) return 2;
+  return 1;
+}
+
+async function updateRelationship(db, share) {
+  if (!share.relationshipId) return;
+
+  const sharesSnap = await db
+    .collection("shares")
+    .where("relationshipId", "==", share.relationshipId)
+    .get();
+
+  let cumulativeScore = 0;
+  const scoreSnaps = await Promise.all(
+    sharesSnap.docs.map((d) => db.collection("scores").doc(d.id).get())
+  );
+  scoreSnaps.forEach((snap) => {
+    if (snap.exists && typeof snap.data().score === "number") {
+      cumulativeScore += snap.data().score;
+    }
+  });
+
+  await db
+    .collection("relationships")
+    .doc(share.relationshipId)
+    .set({
+      senderId: share.senderId,
+      recipientName: share.recipientMemo || "",
+      shareCount: sharesSnap.size,
+      cumulativeScore,
+      flameLevel: cumulativeScoreToFlameLevel(cumulativeScore),
+      lastUpdated: new Date()
+    });
+}
+
 exports.calculateScore = onDocumentWritten(
   { document: "reactions/{shareId}", region: "asia-northeast1" },
   async (event) => {
@@ -71,12 +109,16 @@ exports.calculateScore = onDocumentWritten(
       .collection("scores")
       .doc(shareId)
       .set({
+        score,
         flameLevel: scoreToFlameLevel(score),
         lastUpdated: new Date()
       });
+
+    await updateRelationship(db, share);
   }
 );
 
 exports.isSameDay = isSameDay;
 exports.daysBetween = daysBetween;
 exports.scoreToFlameLevel = scoreToFlameLevel;
+exports.cumulativeScoreToFlameLevel = cumulativeScoreToFlameLevel;

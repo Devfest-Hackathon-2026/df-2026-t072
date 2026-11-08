@@ -233,6 +233,11 @@ async function generateMessages() {
   }
 }
 
+function buildRelationshipId(senderId, recipientName) {
+  const key = (recipientName || "").trim().replace(/[/\s]+/g, "_").slice(0, 150);
+  return `${senderId}__${key || "unknown"}`;
+}
+
 async function ensureShareCreated() {
   if (state.shareId) {
     return `${location.origin}/share/${state.shareId}`;
@@ -255,7 +260,8 @@ async function ensureShareCreated() {
     createdAt: serverTimestamp(),
     senderId: currentUser.uid,
     senderName: state.senderName || "だれか",
-    recipientMemo: state.personName
+    recipientMemo: state.personName,
+    relationshipId: buildRelationshipId(currentUser.uid, state.personName)
   });
 
   return `${location.origin}/share/${state.shareId}`;

@@ -39,5 +39,10 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+
+    match /relationships/{relationshipId} {
+      allow read: if request.auth != null && resource.data.senderId == request.auth.uid;
+      allow write: if false;
+    }
   }
 }
