@@ -1,7 +1,7 @@
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js";
 import { db, functions, waitForUser } from "./auth.js";
-import { CONTENT_TYPES, FLAME_MESSAGES } from "./constants.js";
+import { CONTENT_TYPES, FLAME_MESSAGES, REACTIONS } from "./constants.js";
 
 const NEXT_ACTION_THRESHOLD = 3;
 const HINT_THRESHOLD = 2;
@@ -23,6 +23,20 @@ function escapeHtml(str = "") {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function renderReaction(reaction) {
+  const found = REACTIONS.find((r) => r.value === reaction.emoji);
+  const label = found ? `${found.emoji} ${found.label}` : reaction.emoji || "";
+  document.getElementById("reaction-emoji-label").textContent = label;
+
+  const commentEl = document.getElementById("reaction-comment");
+  if (reaction.comment) {
+    commentEl.textContent = `「${reaction.comment}」`;
+    commentEl.classList.remove("hidden");
+  }
+
+  document.getElementById("reaction-card").classList.remove("hidden");
 }
 
 function renderHint(recipientName) {
@@ -126,6 +140,8 @@ async function init() {
     }
     return;
   }
+
+  renderReaction(reactionSnap.data());
 
   if (!share.relationshipId) {
     document.getElementById("flame-display").innerHTML = '<p class="loading">集計中...</p>';
