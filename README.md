@@ -1,5 +1,7 @@
 # Resonate
 
+🔗 **デプロイURL**: https://resonate-app-35.web.app/
+
 エンタメの好みを共有することで、コミュニティ内の「なんとなく仲良くなりたい人」との関係を自然に深めるWebアプリ。
 
 プロダクト仕様は `resonate_dev_start.md`（元ドキュメント）を参照。本リポジトリはそのMVPの骨格実装。
