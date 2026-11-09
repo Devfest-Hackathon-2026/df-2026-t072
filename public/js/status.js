@@ -4,6 +4,7 @@ import { db, functions, waitForUser } from "./auth.js";
 import { CONTENT_TYPES, FLAME_MESSAGES } from "./constants.js";
 
 const NEXT_ACTION_THRESHOLD = 3;
+const HINT_THRESHOLD = 2;
 
 function contentTypeLabel(value) {
   const found = CONTENT_TYPES.find((c) => c.value === value);
@@ -22,6 +23,14 @@ function escapeHtml(str = "") {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function renderHint(recipientName) {
+  const card = document.getElementById("hint-card");
+  const el = document.getElementById("hint-message");
+  const name = recipientName ? escapeHtml(recipientName) : "その人";
+  el.textContent = `${name}さん、いい反応だったみたい。今度会った時に話題に出してみるのもアリかも？`;
+  card.classList.remove("hidden");
 }
 
 function renderFlames(flameLevel, shareCount, recipientName) {
@@ -130,6 +139,8 @@ async function init() {
     renderFlames(relationship.flameLevel, relationship.shareCount, relationship.recipientName);
     if (relationship.flameLevel >= NEXT_ACTION_THRESHOLD) {
       await setupNextAction(share, shareId);
+    } else if (relationship.flameLevel >= HINT_THRESHOLD) {
+      renderHint(relationship.recipientName);
     }
   } else {
     document.getElementById("flame-display").innerHTML = '<p class="loading">集計中...</p>';
