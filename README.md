@@ -137,6 +137,7 @@ firebase deploy
 - 送信者の表示名はFirebase Authの匿名ユーザーには存在しないため、`shares.senderName` という追加フィールドを入力式で持たせている
 - 画像解析・JSON生成はGeminiの出力ゆらぎに弱いため、本実装時はスキーマ検証とリトライを追加すること
 - Gemini/YouTube APIを呼ぶ関数（`generateMessage`/`suggestFromYoutube`/`suggestContentForPerson`）にレート制限・App Check等の悪用防止策は未設定
+- ネクストアクション提案（Goサイン）は累積スコアの閾値のみで判定しており、「お互いに送り合っている（相互送信）」を検知して即Go判定する機能は未実装。現状は匿名認証＋自由記述の宛先名ベースの設計のため、送信者と受信者を同一アカウントとして紐付けられない（招待リンク等での相互アカウント連携の仕組みが必要）
 
 ## 直近の修正（セキュリティ・堅牢性）
 
