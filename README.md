@@ -93,29 +93,29 @@ firebase deploy
 5. 盛り上がり度スコアの表示 — `status.js` / `scoreCalculator.js`
 
 **できれば（骨格あり）**
-6. LINEスクショ解析によるトーンチューニング — `generateMessage.js` 内 `extractToneHint`
-7. AIカバーメッセージ — `generateAiCover`
-8. ネクストアクション提案 — `suggestNextAction`
-9. Google検索連携の画像付き共有カード — `imageSearch.js`（本番デプロイ済み）
-10. YouTubeの視聴傾向からのAI提案 — `youtubeSuggest.js` / `send.js` の `setupYoutubeSuggest`（本番デプロイ済み）
-11. YouTube由来の候補はサムネイル・元動画リンクをそのまま利用 — `suggestFromYoutube`がthumbnailUrl/sourceUrlを返し、`generateMessage`のGoogle検索をスキップして共有カード・受け取り画面の「元のコンテンツを見る」リンクに反映
-12. ~~送る側の入力画面を1画面に集約~~ — Step13の5ステップ刷新により置き換え（履歴として記録のみ）
-13. UXフルリニューアル（相手ファースト5ステップ化） — コンテンツ選択を起点にしていた旧フローを破棄し、「誰に送るか」を最初に聞く構成に変更。Step2のYouTube連携でStep1の人物像情報を使ったベン図マッチ（既存の`suggestFromYoutube`のpersona連携をそのまま活用）、スキップ時は`suggestContentForPerson`で人物像のみから提案。Step4で「LINEでよく話す相手か」を選択でき、`relationshipStage`としてDBに保存・`generateMessage`のプロンプトに反映。関係性が浅い場合は受け取り画面に「Resonateとは？」の説明カードを表示し、メッセージ内の理由付けも明確にするよう指示
-14. カラーテーマをオレンジ系からブルー系（`#378adb`）に刷新 — CSS変数(`--color-primary`等)を変更するだけで全ページに反映。ベン図の「相手」側の色は、旧プライマリ色だったオレンジ系(`#ff8c5a`)にスライドさせ、青との対比を維持
-15. ステップインジケーター — `index.html`の5ステップそれぞれで現在地が分かるドット表示を追加
-16. YouTube×ペルソナの掛け合わせ提案（ベン図） — `suggestFromYoutube`に`personName`/`personDescription`を渡すと、実際にいいねした動画・登録チャンネルの中から、その人物像に合いそうなものだけをGeminiが選んで返す（新規の作品名は生成しない）。マッチ時は各候補の「なぜ合いそうか」の理由と、あなた/相手の傾向＋重なるキーワードをSVGのベン図で表示
-17. UI改善一式 — 二重送信防止（`onClickOnce`で主要ボタンをクリック中は無効化）、ジャンル未選択時のタグ欄案内、候補一覧の「閉じる」ボタン、スクリーンショットのプレビュー表示、メッセージの文字数カウンター、必須項目バッジ、入力欄への`aria-label`
-18. 他アプリ共有（Instagram・TikTokなど） — Web Share API（`navigator.share`）を使った「他のアプリでシェア」ボタンを追加。LINE以外のDMでも送れるように、OS標準の共有シートを呼び出す（対応していないブラウザではボタン自体を非表示）
-19. メッセージ生成中のローディングアニメーション — SVGで「家が建っていく」演出（土台→壁→屋根→窓の明かり→ハート/音符が浮かぶ）をブルー系カラーで表現し、サブテキストを5フェーズに分けてフェードイン・アウトで切り替え。生成時間に合わせて表示時間を伸縮（最低3秒）し、完了時は家がパッと明るくなるフラッシュ演出を挟んでからプレビュー画面へ遷移。待機が長引いても止まって見えないよう、建ち終わった後のアイドル状態（窓の明滅・ハート/音符の上下動+回転・家全体の軽いバウンド）も強めに演出（Playwrightのheadless Chromiumでcomputed styleの時系列変化を確認済み）
-20. YouTube連携中のローディングアニメーション — Step2の「YouTubeと連携する」待機中にも、あなた(青)と相手(オレンジ)の円が近づいたり離れたりするベン図風アニメーションとキラキラ(✨)の重なり演出、3フェーズのサブテキストを追加
-21. PWA化（ホーム画面・アプリ一覧への追加に対応） — `manifest.json`（アイコン・テーマカラー#378adb）、ハウスロゴのアイコン（`public/icons/`、Playwrightでレンダリングして生成）、最小限のService Worker（`service-worker.js`、同一オリジンのGETのみキャッシュ対象。Firebase/Google系の外部リクエストは横取りしない）を追加し、全ページ（`index.html`/`share.html`/`status.html`/`mypage.html`/`ogp.js`）にmanifestリンク・アイコン・SW登録を設定。Chromeの「インストール」やスマホの「ホーム画面に追加」でアプリアイコン付きで保存できる
-22. `reactions`のFirestoreルール修正 — 認証済みなら誰でも任意のreactionsを作成・上書きできた穴を塞ぎ、`reactorId`が自分のuidと一致する場合のみ作成・更新を許可
-23. 死んでいたロジックに実際の分岐を追加 — `shares.scoreTriggerType`（instant/cumulative）を`scoreCalculator.js`で実際に参照し、ディープ(cumulative)共有は「ジャンル別の良いタイミング窓」（`functions/src/remindDays.js`、旧`REMIND_DAYS`相当）内での反応を高く評価する計算式に分岐。`generateAiCover`も同じ窓を使い、経過日数を「早すぎ／ちょうど良い／遅め」の3段階でジャンルごとに判定してメッセージの言い回しを変えるように変更（従来は全ジャンル一律で2値判定だった）
-24. 全画面の背景デザインを刷新 — ダークネイビー〜ダークブルーのグラデーション（`#0F1923`→`#1A2A3A`、`background-attachment: fixed`）に変更し、映画・音楽・ゲーム等のエンタメアイコンを薄く（opacity 0.045〜0.06、一部ぼかし）散りばめたテクスチャを重ねた。テクスチャはPlaywrightで1枚の透過PNG（`public/img/bg-texture.png`、900x900、約53KB）として書き出し済みの静的画像をタイル状に敷く方式のため、DOM要素やアニメーション無しで軽量。カード・ボタンは引き続き白背景で浮き出るデザインを維持し、ヘッダーのロゴ・ナビリンクなど背景に直接乗る文字だけ明るい色（`--color-on-dark`/`--color-on-dark-sub`）に変更
-25. UI仕上げ — `.card`にbox-shadowを追加しダーク背景からの浮き出し感を強化、`.btn`にホバー/押下時のフィードバック（明るさ変化・縮小・色付きの発光シャドウ）を追加、マイページに読み込み中/失敗時の表示を追加
-26. プライバシーポリシーページ（`public/privacy.html`）を追加 — OAuthを本番環境に公開する際にGoogleから必須要求されるため作成。取得する情報・YouTube連携データの扱い（Limited Use要件）・外部サービス・問い合わせ先を記載
-27. 盛り上がり度を「相手ごとの累積」に変更 — 従来は1回の送信＝1回のリアクションの炎レベルだけで、同じ相手に何度送っても積み上がらなかった。新しく`relationships/{senderId}__{相手の名前}`コレクションを追加し、同じ相手への全シェアのスコアを合算して累積炎レベル（1〜4）を算出するように変更。`status.html`はこの累積値を表示し、ネクストアクション提案も累積レベルで判定する。相手の名前（Step1で必須入力）をキーに使うため、新フローで送った分から有効（`functions/src/scoreCalculator.js`の`cumulativeScoreToFlameLevel`、テスト追加済み）
-28. 体感速度の改善（質は変えずに待ち時間だけ短縮） — `generateMessage`では画像検索(Google Custom Search)がメッセージ本文生成の完了を待ってから実行されていたが、互いに依存しないためPromise.allで並列化。`suggestFromYoutube`では「ジャンル分類」と「相手向けの候補選定」が直列(分類結果を選定プロンプトのヒントとして渡していた)だったが、選定側をタイトルのみから判断する形に変えて依存関係を外し、2つを並列実行するように変更（Gemini呼び出し回数は変わらず、待ち時間のみ短縮）
+1. LINEスクショ解析によるトーンチューニング — `generateMessage.js` 内 `extractToneHint`
+2.  AIカバーメッセージ — `generateAiCover`
+3.   ネクストアクション提案 — `suggestNextAction`
+4.    Google検索連携の画像付き共有カード — `imageSearch.js`（本番デプロイ済み）
+5. YouTubeの視聴傾向からのAI提案 — `youtubeSuggest.js` / `send.js` の `setupYoutubeSuggest`（本番デプロイ済み）
+6.  YouTube由来の候補はサムネイル・元動画リンクをそのまま利用 — `suggestFromYoutube`がthumbnailUrl/sourceUrlを返し、`generateMessage`のGoogle検索をスキップして共有カード・受け取り画面の「元のコンテンツを見る」リンクに反映
+7.   ~~送る側の入力画面を1画面に集約~~ — Step13の5ステップ刷新により置き換え（履歴として記録のみ）
+8.    UXフルリニューアル（相手ファースト5ステップ化） — コンテンツ選択を起点にしていた旧フローを破棄し、「誰に送るか」を最初に聞く構成に変更。Step2のYouTube連携でStep1の人物像情報を使ったベン図マッチ（既存の`suggestFromYoutube`のpersona連携をそのまま活用）、スキップ時は`suggestContentForPerson`で人物像のみから提案。Step4で「LINEでよく話す相手か」を選択でき、`relationshipStage`としてDBに保存・`generateMessage`のプロンプトに反映。関係性が浅い場合は受け取り画面に「Resonateとは？」の説明カードを表示し、メッセージ内の理由付けも明確にするよう指示
+9. カラーテーマをオレンジ系からブルー系（`#378adb`）に刷新 — CSS変数(`--color-primary`等)を変更するだけで全ページに反映。ベン図の「相手」側の色は、旧プライマリ色だったオレンジ系(`#ff8c5a`)にスライドさせ、青との対比を維持
+10.  ステップインジケーター — `index.html`の5ステップそれぞれで現在地が分かるドット表示を追加
+11.   YouTube×ペルソナの掛け合わせ提案（ベン図） — `suggestFromYoutube`に`personName`/`personDescription`を渡すと、実際にいいねした動画・登録チャンネルの中から、その人物像に合いそうなものだけをGeminiが選んで返す（新規の作品名は生成しない）。マッチ時は各候補の「なぜ合いそうか」の理由と、あなた/相手の傾向＋重なるキーワードをSVGのベン図で表示
+12.    UI改善一式 — 二重送信防止（`onClickOnce`で主要ボタンをクリック中は無効化）、ジャンル未選択時のタグ欄案内、候補一覧の「閉じる」ボタン、スクリーンショットのプレビュー表示、メッセージの文字数カウンター、必須項目バッジ、入力欄への`aria-label`
+13. 他アプリ共有（Instagram・TikTokなど） — Web Share API（`navigator.share`）を使った「他のアプリでシェア」ボタンを追加。LINE以外のDMでも送れるように、OS標準の共有シートを呼び出す（対応していないブラウザではボタン自体を非表示）
+14.  メッセージ生成中のローディングアニメーション — SVGで「家が建っていく」演出（土台→壁→屋根→窓の明かり→ハート/音符が浮かぶ）をブルー系カラーで表現し、サブテキストを5フェーズに分けてフェードイン・アウトで切り替え。生成時間に合わせて表示時間を伸縮（最低3秒）し、完了時は家がパッと明るくなるフラッシュ演出を挟んでからプレビュー画面へ遷移。待機が長引いても止まって見えないよう、建ち終わった後のアイドル状態（窓の明滅・ハート/音符の上下動+回転・家全体の軽いバウンド）も強めに演出（Playwrightのheadless Chromiumでcomputed styleの時系列変化を確認済み）
+15.   YouTube連携中のローディングアニメーション — Step2の「YouTubeと連携する」待機中にも、あなた(青)と相手(オレンジ)の円が近づいたり離れたりするベン図風アニメーションとキラキラ(✨)の重なり演出、3フェーズのサブテキストを追加
+16. A化（ホーム画面・アプリ一覧への追加に対応） — `manifest.json`（アイコン・テーマカラー#378adb）、ハウスロゴのアイコン（`public/icons/`、Playwrightでレンダリングして生成）、最小限のService Worker（`service-worker.js`、同一オリジンのGETのみキャッシュ対象。Firebase/Google系の外部リクエストは横取りしない）を追加し、全ページ（`index.html`/`share.html`/`status.html`/`mypage.html`/`ogp.js`）にmanifestリンク・アイコン・SW登録を設定。Chromeの「インストール」やスマホの「ホーム画面に追加」でアプリアイコン付きで保存できる
+17.  `reactions`のFirestoreルール修正 — 認証済みなら誰でも任意のreactionsを作成・上書きできた穴を塞ぎ、`reactorId`が自分のuidと一致する場合のみ作成・更新を許可
+18.   死んでいたロジックに実際の分岐を追加 — `shares.scoreTriggerType`（instant/cumulative）を`scoreCalculator.js`で実際に参照し、ディープ(cumulative)共有は「ジャンル別の良いタイミング窓」（`functions/src/remindDays.js`、旧`REMIND_DAYS`相当）内での反応を高く評価する計算式に分岐。`generateAiCover`も同じ窓を使い、経過日数を「早すぎ／ちょうど良い／遅め」の3段階でジャンルごとに判定してメッセージの言い回しを変えるように変更（従来は全ジャンル一律で2値判定だった）
+19.    全画面の背景デザインを刷新 — ダークネイビー〜ダークブルーのグラデーション（`#0F1923`→`#1A2A3A`、`background-attachment: fixed`）に変更し、映画・音楽・ゲーム等のエンタメアイコンを薄く（opacity 0.045〜0.06、一部ぼかし）散りばめたテクスチャを重ねた。テクスチャはPlaywrightで1枚の透過PNG（`public/img/bg-texture.png`、900x900、約53KB）として書き出し済みの静的画像をタイル状に敷く方式のため、DOM要素やアニメーション無しで軽量。カード・ボタンは引き続き白背景で浮き出るデザインを維持し、ヘッダーのロゴ・ナビリンクなど背景に直接乗る文字だけ明るい色（`--color-on-dark`/`--color-on-dark-sub`）に変更
+20. UI仕上げ — `.card`にbox-shadowを追加しダーク背景からの浮き出し感を強化、`.btn`にホバー/押下時のフィードバック（明るさ変化・縮小・色付きの発光シャドウ）を追加、マイページに読み込み中/失敗時の表示を追加
+21.  プライバシーポリシーページ（`public/privacy.html`）を追加 — OAuthを本番環境に公開する際にGoogleから必須要求されるため作成。取得する情報・YouTube連携データの扱い（Limited Use要件）・外部サービス・問い合わせ先を記載
+22.   盛り上がり度を「相手ごとの累積」に変更 — 従来は1回の送信＝1回のリアクションの炎レベルだけで、同じ相手に何度送っても積み上がらなかった。新しく`relationships/{senderId}__{相手の名前}`コレクションを追加し、同じ相手への全シェアのスコアを合算して累積炎レベル（1〜4）を算出するように変更。`status.html`はこの累積値を表示し、ネクストアクション提案も累積レベルで判定する。相手の名前（Step1で必須入力）をキーに使うため、新フローで送った分から有効（`functions/src/scoreCalculator.js`の`cumulativeScoreToFlameLevel`、テスト追加済み）
+23.    体感速度の改善（質は変えずに待ち時間だけ短縮） — `generateMessage`では画像検索(Google Custom Search)がメッセージ本文生成の完了を待ってから実行されていたが、互いに依存しないためPromise.allで並列化。`suggestFromYoutube`では「ジャンル分類」と「相手向けの候補選定」が直列(分類結果を選定プロンプトのヒントとして渡していた)だったが、選定側をタイトルのみから判断する形に変えて依存関係を外し、2つを並列実行するように変更（Gemini呼び出し回数は変わらず、待ち時間のみ短縮）
 
 **未実装（ピッチで語る未来機能）**
 - 累積型スコア判定の精度向上
